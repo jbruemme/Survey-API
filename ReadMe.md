@@ -52,5 +52,26 @@ This project leverages the following technologies:
    git clone https://github.com/jbruemme/Survey-API.git
    cd Survey-API
     ```
+   
+---
+   
+## Usage
+1. Import the provided Postman collection:
+   ```ngix
+   SER 421 Assignment 6.postman_collection
+   ```
+2. Test teh API endpoints directly through Postman, including both success and failure
+   test cases.
+3. API documentation:
+   ```bash
+   /apidoc/index.html
+   ```
 
+---
+
+## Future Implementation
+1. Future implementation of this project will include a frontend web interface to:
+ - Create and manage surveys visually.
+ - Submit and view survey responses.
+ - Display analytics and summary results dynamically.
 
