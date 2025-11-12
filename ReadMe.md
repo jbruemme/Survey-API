@@ -55,12 +55,12 @@ This project leverages the following technologies:
    
 ---
    
-## Usage
+## 🚀 Usage
 1. Import the provided Postman collection:
    ```ngix
    SER 421 Assignment 6.postman_collection
    ```
-2. Test teh API endpoints directly through Postman, including both success and failure
+2. Test the API endpoints directly through Postman, including both success and failure
    test cases.
 3. API documentation:
    ```bash
@@ -69,9 +69,9 @@ This project leverages the following technologies:
 
 ---
 
-## Future Implementation
-1. Future implementation of this project will include a frontend web interface to:
- - Create and manage surveys visually.
- - Submit and view survey responses.
- - Display analytics and summary results dynamically.
+## 🔮 Future Implementation
+Future implementation of this project will include a frontend web interface to:
+   - Create and manage surveys visually.
+   - Submit and view survey responses.
+   - Display analytics and summary results dynamically.
 
