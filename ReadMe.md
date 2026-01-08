@@ -1,4 +1,4 @@
-# ☕ Spring Boot Survey API
+# Spring Boot Survey API
 
 [![Java](https://img.shields.io/badge/Java-17+-orange)](https://www.oracle.com/java/)  
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)  
@@ -6,7 +6,7 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 
 This project is a **Spring Boot REST API** built with **Gradle** and an **in-memory data store**.  
 It provides endpoints for managing surveys, survey items, and survey instances — all bootstrapped automatically on application startup.
@@ -21,7 +21,7 @@ The provided `index.html` file contains full documentation for all available end
 
 ---
 
-## ⚡ Features
+## Features
 
 - **9 REST API Endpoints** for surveys, survey items, and survey instances.
 - **In-memory data store** (no database required).
@@ -32,9 +32,7 @@ The provided `index.html` file contains full documentation for all available end
 
 ---
 
-## 🛠️ Technologies Used
-
-This project leverages the following technologies:
+## Technologies Used
 
 - **Java 17+** – Primary programming language.
 - **Spring Boot 3.x** – Framework for RESTful service development.
@@ -44,7 +42,7 @@ This project leverages the following technologies:
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 1. Clone the repository:
 
@@ -55,7 +53,7 @@ This project leverages the following technologies:
    
 ---
    
-## 🚀 Usage
+## Usage
 1. Import the provided Postman collection:
    ```ngix
    SER 421 Assignment 6.postman_collection
@@ -69,7 +67,7 @@ This project leverages the following technologies:
 
 ---
 
-## 🔮 Future Implementation
+## Future Implementation
 Future implementation of this project will include a frontend web interface to:
    - Create and manage surveys visually.
    - Submit and view survey responses.
