@@ -1,0 +1,113 @@
+/* Base */
+body {
+    font-family: system-ui, Arial, sans-serif;
+    margin: 24px;
+    background: #fafafa;
+}
+
+header {
+    margin-bottom: 20px;
+}
+
+h1 {
+    margin-bottom: 4px;
+}
+
+.muted {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Layout */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Badges */
+.pill {
+    font-size: 12px;
+    border: 1px solid #ccc;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #444;
+}
+
+/* Forms */
+label {
+    display: block;
+    font-weight: 600;
+    margin-top: 12px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+}
+
+textarea {
+    min-height: 80px;
+}
+
+/* Buttons */
+button {
+    margin-top: 12px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #bbb;
+    background: #f3f3f3;
+    cursor: pointer;
+}
+
+button.primary {
+    border-color: #666;
+    font-weight: 600;
+}
+
+/* Utility */
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+ul {
+    padding-left: 18px;
+}
+
+.item {
+    margin: 8px 0;
+}
+
+/* Debug */
+pre {
+    margin-top: 10px;
+    background: #0b1020;
+    color: #d7e1ff;
+    padding: 10px;
+    border-radius: 10px;
+    max-height: 260px;
+    overflow: auto;
+    font-size: 12px;
+}

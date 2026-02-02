@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Survey Builder</title>
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Survey Builder</h1>
+  <p class="muted">
+    Create survey questions, then assemble them into a survey.
+    <a href="/apidoc/" target="_blank">API Docs</a>
+  </p>
+</header>
+
+<main class="grid">
+
+  <!-- CREATE QUESTION -->
+  <section class="card">
+    <header class="card-header">
+      <h2>1) Create Question</h2>
+      <span class="pill">POST /api/survey-items</span>
+    </header>
+
+    <label for="qText">Question</label>
+    <input id="qText" placeholder="What is the capital of Idaho?" />
+
+    <label for="qOptions">Options (one per line)</label>
+    <textarea id="qOptions"></textarea>
+
+    <label for="qCorrect">Correct Answer</label>
+    <select id="qCorrect"></select>
+
+    <div class="row">
+      <button class="primary" id="btnCreateItem">Create Question</button>
+      <button id="btnClearForm">Clear</button>
+    </div>
+
+    <div id="itemMsg" class="muted"></div>
+
+    <h3>Debug</h3>
+    <pre id="raw">(nothing yet)</pre>
+  </section>
+
+  <!-- QUESTION BANK + SURVEY -->
+  <section class="card">
+    <header class="card-header">
+      <h2>2) Question Bank</h2>
+      <span class="pill">select → itemIds</span>
+    </header>
+
+    <ul id="bank"></ul>
+
+    <hr/>
+
+    <header class="card-header">
+      <h2>3) Create Survey</h2>
+      <span class="pill">POST /api/surveys</span>
+    </header>
+
+    <label for="sTitle">Survey Title</label>
+    <input id="sTitle" placeholder="My New Survey" />
+
+    <label for="sState">Survey State</label>
+    <select id="sState">
+      <option value="CREATED">CREATED</option>
+      <option value="COMPLETED">COMPLETED</option>
+    </select>
+
+    <button class="primary" id="btnCreateSurvey">
+      Create Survey From Selected
+    </button>
+
+    <div id="surveyMsg" class="muted"></div>
+  </section>
+
+</main>
+
+<script>
+  // ----- Helpers -----
+  const API_BASE = "";
+
+  // Cache DOM lookups once (fixes "duplicated selector" warnings)
+  const qTextEl = document.getElementById("qText");
+  const qOptionsEl = document.getElementById("qOptions");
+  const qCorrectEl = document.getElementById("qCorrect");
+  const btnCreateItemEl = document.getElementById("btnCreateItem");
+  const btnClearFormEl = document.getElementById("btnClearForm");
+  const itemMsgEl = document.getElementById("itemMsg");
+  const rawEl = document.getElementById("raw");
+
+  const bankEl = document.getElementById("bank");
+
+  const sTitleEl = document.getElementById("sTitle");
+  const sStateEl = document.getElementById("sState");
+  const btnCreateSurveyEl = document.getElementById("btnCreateSurvey");
+  const surveyMsgEl = document.getElementById("surveyMsg");
+
+  // In-memory question bank for this browser session
+  const bankItems = new Map();
+
+  function showRaw(obj) {
+    rawEl.textContent = obj ? JSON.stringify(obj, null, 2) : "(empty)";
+  }
+
+  async function requestJson(path, options = {}) {
+    const url = `${API_BASE}${path}`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...options
+    });
+
+    // Be resilient: server errors might return plain text/HTML
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text || null;
+    }
+
+    if (!res.ok) {
+      // Prefer JSON message if available; otherwise fallback to response text/status
+      const msg =
+              (data && typeof data === "object" && data.message) ? data.message :
+                      (typeof data === "string" && data.trim().length) ? data :
+                              res.statusText;
+
+      throw new Error(msg);
+    }
+
+    return data;
+  }
+
+  // ----- UI logic -----
+  function refreshCorrectDropdown() {
+    const options = qOptionsEl.value
+            .split("\n")
+            .map(o => o.trim())
+            .filter(Boolean);
+
+    qCorrectEl.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select correct answer";
+    qCorrectEl.appendChild(placeholder);
+
+    options.forEach(o => {
+      const opt = document.createElement("option");
+      opt.value = o;
+      opt.textContent = o;
+      qCorrectEl.appendChild(opt);
+    });
+  }
+
+  function renderBank() {
+    bankEl.innerHTML = "";
+
+    if (bankItems.size === 0) {
+      const li = document.createElement("li");
+      li.className = "muted";
+      li.textContent = "No questions yet.";
+      bankEl.appendChild(li);
+      return;
+    }
+
+    for (const item of bankItems.values()) {
+      const li = document.createElement("li");
+      li.className = "item";
+
+      // (Optional) Create a stable id for label association
+      const checkboxId = `bank-item-${item.id}`;
+
+      li.innerHTML = `
+        <label for="${checkboxId}">
+          <input id="${checkboxId}" type="checkbox" data-id="${item.id}">
+          #${item.id} — ${item.question}
+        </label>
+      `;
+
+      bankEl.appendChild(li);
+    }
+  }
+
+  function clearQuestionForm() {
+    qTextEl.value = "";
+    qOptionsEl.value = "";
+    refreshCorrectDropdown();
+  }
+
+  async function createItem() {
+    itemMsgEl.textContent = "Creating…";
+
+    try {
+      const payload = {
+        question: qTextEl.value.trim(),
+        options: qOptionsEl.value.split("\n").map(o => o.trim()).filter(Boolean),
+        correctAnswer: qCorrectEl.value
+      };
+
+      const created = await requestJson("/api/survey-items", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      bankItems.set(created.id, created);
+      renderBank();
+      showRaw(created);
+
+      itemMsgEl.textContent = `Created question #${created.id}`;
+      clearQuestionForm();
+    } catch (e) {
+      itemMsgEl.textContent = `Error: ${e.message}`;
+    }
+  }
+
+  async function createSurvey() {
+    surveyMsgEl.textContent = "Creating survey…";
+
+    try {
+      const checked = bankEl.querySelectorAll("input[type=checkbox]:checked");
+      const itemIds = [...checked].map(cb => Number(cb.dataset.id));
+
+      const payload = {
+        title: sTitleEl.value,
+        state: sStateEl.value,
+        itemIds
+      };
+
+      const created = await requestJson("/api/surveys", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      showRaw(created);
+      surveyMsgEl.textContent = "Survey created successfully.";
+    } catch (e) {
+      surveyMsgEl.textContent = `Error: ${e.message}`;
+    }
+  }
+
+  // ----- Event wiring -----
+  qOptionsEl.addEventListener("input", refreshCorrectDropdown);
+  btnCreateItemEl.addEventListener("click", createItem);
+  btnCreateSurveyEl.addEventListener("click", createSurvey);
+  btnClearFormEl.addEventListener("click", clearQuestionForm);
+
+  // Initial render
+  refreshCorrectDropdown();
+  renderBank();
+</script>
+
+</body>
+</html>
+
+
