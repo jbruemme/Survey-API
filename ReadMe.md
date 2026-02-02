@@ -54,12 +54,27 @@ The provided `index.html` file contains full documentation for all available end
 ---
    
 ## Usage
-1. Import the provided Postman collection:
-   ```ngix
-   SER 421 Assignment 6.postman_collection
+1. Run the application using Gradle
+   - CMD:
+      ```bash
+      gradlew bootRun
+      ```
+   - PowerShell
+      ```bash
+     .\gradlew bootRun
+     ```
+   - macOS & Linux:
+      ```bash
+     ./gradlew bootRun
+     ```
+2. Frontend UI:
+   ```bash
+   http://localhost:8080/
    ```
-2. Test the API endpoints directly through Postman, including both success and failure
-   test cases.
+3. REST API Base Path:
+   ```bash
+   http://localhost:8080/api
+   ```
 3. API documentation:
    ```bash
    /apidoc/index.html
