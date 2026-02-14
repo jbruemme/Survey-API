@@ -4,9 +4,9 @@ services:
     container_name: survey-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: surveyDB
-      POSTGRES_USER: surveyUser
-      POSTGRES_PASSWORD: surveyPassword
+      POSTGRES_DB: ${POSTGRES_DB:-surveyDB}
+      POSTGRES_USER: ${POSTGRES_USER:-surveyUser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-surveyPassword}
     ports:
       - "5433:5432"
     volumes:
