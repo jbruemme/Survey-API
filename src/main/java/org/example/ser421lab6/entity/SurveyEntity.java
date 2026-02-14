@@ -30,7 +30,7 @@ public class SurveyEntity {
 
     @ManyToMany
     @JoinTable(
-            name = "survey_items",
+            name = "survey_survey_items",
             joinColumns = @JoinColumn(name = "survey_id"),
             inverseJoinColumns = @JoinColumn(name = "survey_item_id")
     )
