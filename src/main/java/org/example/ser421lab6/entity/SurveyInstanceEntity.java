@@ -25,6 +25,7 @@ public class SurveyInstanceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username", nullable = false)
     private String user;
 
     @ManyToOne(optional = false)
