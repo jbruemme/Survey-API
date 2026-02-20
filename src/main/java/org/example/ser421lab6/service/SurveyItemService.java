@@ -156,6 +156,7 @@ public class SurveyItemService {
     private SurveyItemInstanceDto toSurveyInstanceItemDto(SurveyItemInstanceEntity surveyItemInstance) {
         return new SurveyItemInstanceDto(
                 surveyItemInstance.getId(),
+                surveyItemInstance.getSurveyItem().getId(),
                 surveyItemInstance.getSurveyItem().getQuestion(),
                 surveyItemInstance.getUserAnswer(),
                 surveyItemInstance.isCorrect()

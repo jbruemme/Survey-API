@@ -166,6 +166,7 @@ public class SurveyInstanceService {
         List<SurveyItemInstanceDto> itemInstanceDtos = surveyInstance.getItemInstances().stream()
                 .map(ii -> new SurveyItemInstanceDto(
                         ii.getId(),
+                        ii.getSurveyItem().getId(),
                         ii.getSurveyItem().getQuestion(),
                         ii.getUserAnswer(),
                         ii.isCorrect()
