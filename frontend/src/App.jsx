@@ -1,5 +1,10 @@
 import { BrowserRouter, Routes, Route, Link, NavLink } from "react-router-dom";
+import "./styles/navbar.css"
 import TakeSurvey from "./pages/TakeSurvey";
+import CreateSurvey from "./pages/CreateSurvey";
+import logo from "./assets/pulse_logo.png"
+import favicon from "./assets/pulse_favicon.png"
+import navLogo from "./assets/Pulse_logo_navbar.png"
 
 /**
  * Simple home page placeholder
@@ -16,52 +21,6 @@ function Home() {
 }
 
 /**
- * Simple Builder page placeholder
- * @returns {JSX.Element} Default builder page
- * @constructor
- */
-function Builder() {
-    return (
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: 18 }}>
-            <h2 style={{ marginTop: 0 }}>Survey Builder</h2>
-            <p style={{ color: "var(--muted)" }}>Builder UI coming next.</p>
-        </div>
-    );
-}
-
-const navWrap = {
-    borderBottom: "1px solid var(--border)",
-    background: "var(--panel)",
-};
-
-const navInner = {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "12px 18px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-};
-
-const navLinks = {
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-    flexWrap: "wrap",
-};
-
-const brand = { fontWeight: 800, letterSpacing: 0.2 };
-
-const linkStyle = ({ isActive }) => ({
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid var(--border-soft)",
-    background: isActive ? "rgba(88,101,242,0.18)" : "var(--panel2)",
-    textDecoration: "none",
-});
-
-/**
  * Application routing
  * @returns {JSX.Element} Initial application layout
  * @constructor
@@ -69,22 +28,35 @@ const linkStyle = ({ isActive }) => ({
 export default function App() {
     return (
         <BrowserRouter>
-            <header style={navWrap}>
-                <div style={navInner}>
-                    <Link to="/" style={brand}>Survey Platform</Link>
+            <header className="navbar">
+                <div className="navbarInner">
 
-                    <nav style={navLinks}>
-                        <NavLink to="/" style={linkStyle}>Home</NavLink>
-                        <NavLink to="/builder" style={linkStyle}>Builder</NavLink>
-                        <NavLink to="/take" style={linkStyle}>Take Survey</NavLink>
+                    <Link to="/" className="brand">
+                        <img src={favicon} alt="Pulse" className="logo"/>
+                    </Link>
+
+                    <nav className="navLinks">
+                        <NavLink to="/" className={({isActive}) => isActive ? "navLink active" : "navLink"}>
+                            Home
+                        </NavLink>
+
+                        <NavLink to="/builder" className={({isActive}) => isActive ? "navLink active" : "navLink"}>
+                            Builder
+                        </NavLink>
+
+                        <NavLink to="/take" className={({isActive}) => isActive ? "navLink active" : "navLink"}>
+                            Take Survey
+                        </NavLink>
                     </nav>
+
                 </div>
             </header>
 
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/builder" element={<Builder />} />
-                <Route path="/take" element={<TakeSurvey />} />
+                <Route path="*" element={<Home/>}/>
+                <Route path="/" element={<Home/>}/>
+                <Route path="/take" element={<TakeSurvey/>}/>
+                <Route path="/builder" element={<CreateSurvey/>}/>
             </Routes>
         </BrowserRouter>
     );

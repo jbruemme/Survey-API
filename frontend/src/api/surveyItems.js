@@ -1,14 +1,12 @@
 import { requestJson } from "./client";
 
 /**
- * Data access layer for hitting surveys API endpoints
+ * Data access layer for hitting surveyItems API endpoints
  * @type {{answer: (function(*): Promise<*>), get: (function(*): Promise<*>), create: (function(*): Promise<*>)}}
  */
-export const surveysApi = {
-    list: () => requestJson("/api/surveys"),
-    get: (id) => requestJson(`/api/surveys/${id}`),
+export const surveyItemsApi = {
     create: (payload) =>
-        requestJson("/api/surveys", {
+        requestJson("/api/survey-items", {
             method: "POST",
             body: JSON.stringify(payload),
         }),
