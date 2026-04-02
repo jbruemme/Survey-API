@@ -39,8 +39,6 @@ export default function CreateSurvey() {
     const canCreateQuestion =
         qText.trim().length > 0 &&
         options.length > 0 &&
-        qCorrect &&
-        options.includes(qCorrect) &&
         !busy;
 
     const canCreateSurvey =
@@ -91,7 +89,7 @@ export default function CreateSurvey() {
             const created = await surveyItemsApi.create({
                 question: qText.trim(),
                 options,
-                correctAnswer: qCorrect,
+                correctAnswer: qCorrect || null,
             });
 
             setBankItems((prev) => [...prev, created]);

@@ -45,23 +45,26 @@ public class SurveyItemService {
             throw new IllegalArgumentException("Options cannot be empty");
         }
 
-        if (surveyItemDto.getCorrectAnswer() == null || surveyItemDto.getCorrectAnswer().trim().isEmpty()) {
-            throw new IllegalArgumentException("Correct answer cannot be empty");
-        }
+        // Check if correct answer is null, if blank set to null, if not null validate correct answer is one of the options
+        String rawCorrectAnswer = surveyItemDto.getCorrectAnswer();
+        final String correctAnswer =
+                (rawCorrectAnswer == null || rawCorrectAnswer.isBlank() ? null : rawCorrectAnswer.trim());
 
-        // Validate correctAnswer is one of the options
-        boolean answerInOptions = surveyItemDto.getOptions().stream()
-                .anyMatch(option -> option != null && option.trim()
-                        .equalsIgnoreCase(surveyItemDto.getCorrectAnswer().trim()));
-        if (!answerInOptions) {
-            throw new IllegalArgumentException("Correct answer must match one of the options");
+        // Validate correctAnswer is one of the options if a correct answer is provided
+        if (correctAnswer != null) {
+            boolean answerInOptions = surveyItemDto.getOptions().stream()
+                    .anyMatch(option -> option != null && option.trim()
+                            .equalsIgnoreCase(correctAnswer.trim()));
+            if (!answerInOptions) {
+                throw new IllegalArgumentException("Correct answer must match one of the options");
+            }
         }
 
         // Create the survey item entity
         SurveyItemEntity surveyItemEntity = new SurveyItemEntity();
         surveyItemEntity.setQuestion(surveyItemDto.getQuestion().trim());
         surveyItemEntity.setOptions(surveyItemDto.getOptions().stream().map(String::trim).toList());
-        surveyItemEntity.setCorrectAnswer(surveyItemDto.getCorrectAnswer().trim());
+        surveyItemEntity.setCorrectAnswer(correctAnswer);
 
         SurveyItemEntity savedSurveyItem = surveyItemRepository.save(surveyItemEntity);
         return toSurveyItemDto(savedSurveyItem);
@@ -111,7 +114,12 @@ public class SurveyItemService {
         String trimmedAnswer = answer.trim();
         itemInstance.setUserAnswer(trimmedAnswer);
 
-        boolean isAnswerCorrect = trimmedAnswer.equalsIgnoreCase(itemInstance.getSurveyItem().getCorrectAnswer());
+        String correctAnswer = itemInstance.getSurveyItem().getCorrectAnswer();
+        Boolean isAnswerCorrect = null;
+
+        if (correctAnswer != null && !correctAnswer.isBlank()) {
+            isAnswerCorrect = trimmedAnswer.equalsIgnoreCase(correctAnswer);
+        }
         itemInstance.setCorrect(isAnswerCorrect);
 
         // Save and return the updated survey instance item
@@ -159,7 +167,7 @@ public class SurveyItemService {
                 surveyItemInstance.getSurveyItem().getId(),
                 surveyItemInstance.getSurveyItem().getQuestion(),
                 surveyItemInstance.getUserAnswer(),
-                surveyItemInstance.isCorrect()
+                surveyItemInstance.getCorrect()
         );
     }
 

@@ -30,5 +30,5 @@ public class SurveyItemInstanceEntity {
 
     private String userAnswer;
 
-    private boolean correct;
+    private Boolean correct;
 }

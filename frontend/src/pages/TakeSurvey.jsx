@@ -374,16 +374,25 @@ export default function TakeSurvey() {
  */
 function AnswerReveal({ surveyItem, instanceItem }) {
     const answered = instanceItem.selectedAnswer ?? "(none)";
-    const correct = surveyItem.correctAnswer;
-    const ok = instanceItem.correct;
+    const isGradable = surveyItem?.correctAnswer != null;
+    const ok = instanceItem.correct === true;
 
     return (
         <div className={styles.reveal}>
             <div><strong>Your answer:</strong> {answered}</div>
-            <div><strong>Correct answer:</strong> {correct}</div>
-            <div style={{ marginTop: 8 }} className={ok ? styles.ok : styles.bad}>
-                {ok ? "✅ Correct" : "❌ Incorrect"}
-            </div>
+
+            {isGradable ? (
+                <>
+                    <div><strong>Correct answer:</strong> {surveyItem.correctAnswer}</div>
+                    <div style={{ marginTop: 8 }} className={ok ? styles.ok : styles.bad}>
+                        {ok ? "✅ Correct" : "❌ Incorrect"}
+                    </div>
+                </>
+            ) : (
+                <div className={styles.meta} style={{ marginTop: 8 }}>
+                    Response recorded.
+                </div>
+            )}
         </div>
     );
 }
@@ -399,20 +408,31 @@ function Results({ survey, instance }) {
     const itemById = new Map((survey?.items || []).map(i => [i.id, i]));
     const items = instance?.itemInstances || [];
 
-    const total = items.length;
-    const correctCount = items.filter(ii => ii.correct).length;
+    const gradableItems = items.filter(ii => ii.correct != null);
+    const gradableTotal = gradableItems.length;
+    const correctCount = gradableItems.filter(ii => ii.correct === true).length;
 
     return (
         <div>
             <h4 style={{ marginTop: 0 }}>Results</h4>
 
             <div className={styles.pill} style={{ marginBottom: 12 }}>
-                Score: <strong style={{ color: "var(--text)", marginLeft: 6 }}>{correctCount}/{total}</strong>
+                {gradableTotal > 0 ? (
+                    <>
+                        Score:
+                        <strong style={{ color: "var(--text", marginLeft: 6}}>
+                            {correctCount}/{gradableTotal}
+                        </strong>
+                    </>
+                ) : (
+                    <strong style={{ color: "var(--text"}}>Completed</strong>
+                )}
             </div>
 
             <div style={{ display: "grid", gap: 10 }}>
                 {items.map(ii => {
                     const item = itemById.get(ii.surveyItemId);
+                    const isGradable = item?.correctAnswer != null;
 
                     return (
                         <div key={ii.id} className={styles.resultCard}>
@@ -421,13 +441,23 @@ function Results({ survey, instance }) {
                             </div>
 
                             <div className={styles.meta} style={{ marginTop: 8 }}>
-                                Your answer: <strong style={{ color: "var(--text)" }}>{ii.selectedAnswer ?? "(none)"}</strong>
+                                Your answer:{" "}
+                                <strong style={{ color: "var(--text)" }}>{ii.selectedAnswer ?? "(none)"}</strong>
                             </div>
 
-                            <div className={styles.meta}>
-                                Correct: <strong style={{ color: "var(--text)" }}>{item?.correctAnswer ?? "(unknown)"}</strong>{" "}
-                                · {ii.correct ? "✅" : "❌"}
-                            </div>
+                            {isGradable ? (
+                                <div className={styles.meta}>
+                                    Correct{" "}
+                                    <strong style={{ color: "var(--text" }}>
+                                        {item?.correctAnswer ?? "(unknown"}
+                                    </strong>{" "}
+                                    . {ii.correct === true ? "✅" : "❌"}
+                                </div>
+                            ) : (
+                                <div className={styles.meta}>
+                                    Response recorded.
+                                </div>
+                            )}
                         </div>
                     );
                 })}

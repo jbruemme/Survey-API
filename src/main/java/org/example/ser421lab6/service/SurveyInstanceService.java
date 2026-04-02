@@ -169,7 +169,7 @@ public class SurveyInstanceService {
                         ii.getSurveyItem().getId(),
                         ii.getSurveyItem().getQuestion(),
                         ii.getUserAnswer(),
-                        ii.isCorrect()
+                        ii.getCorrect()
                 ))
                 .toList();
 

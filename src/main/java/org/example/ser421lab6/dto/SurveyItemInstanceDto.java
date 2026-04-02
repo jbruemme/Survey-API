@@ -12,5 +12,5 @@ public class SurveyItemInstanceDto {
     private Long surveyItemId;
     private String question;
     private String selectedAnswer;
-    private boolean correct;
+    private Boolean correct;
 }
