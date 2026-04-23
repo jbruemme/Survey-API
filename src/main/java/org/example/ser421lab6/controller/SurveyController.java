@@ -1,9 +1,6 @@
 package org.example.ser421lab6.controller;
 
-import org.example.ser421lab6.dto.ErrorResponse;
-import org.example.ser421lab6.dto.SurveyCreateDto;
-import org.example.ser421lab6.dto.SurveyDto;
-import org.example.ser421lab6.dto.SurveySummaryDto;
+import org.example.ser421lab6.dto.*;
 import org.example.ser421lab6.service.SurveyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -235,6 +232,26 @@ public class SurveyController {
         try {
             SurveySummaryDto deletedSurvey = surveyService.deleteSurvey(id);
             return ResponseEntity.ok(deletedSurvey);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/public/surveys/{shareToken}")
+    public ResponseEntity<?> getSurveyByShareToken(@PathVariable String shareToken) {
+        try {
+            SurveyDto survey = surveyService.getSurveyByShareToken(shareToken);
+            return ResponseEntity.ok(survey);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/surveys/{id}/share")
+    public ResponseEntity<?> getShareLink(@PathVariable Long id) {
+        try {
+            SurveyShareDto shareDto = surveyService.getShareLinks(id);
+            return ResponseEntity.ok(shareDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
         }

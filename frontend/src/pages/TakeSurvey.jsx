@@ -2,6 +2,7 @@ import styles from "./TakeSurvey.module.css";
 import { useEffect, useMemo, useState } from "react";
 import { surveysApi } from "../api/surveys";
 import { instancesApi } from "../api/instances";
+import { useParams } from "react-router-dom";
 
 /**
  * TakeSurvey page component, the default export for TakeSurvey
@@ -9,6 +10,10 @@ import { instancesApi } from "../api/instances";
  * @constructor
  */
 export default function TakeSurvey() {
+    // Share mode
+    const {shareToken}= useParams();
+    const shareMode = Boolean(shareToken);
+
     // Survey selection and survey taker identification
     const [surveys, setSurveys] = useState([]);
     const [surveyId, setSurveyId] = useState("");
@@ -30,13 +35,25 @@ export default function TakeSurvey() {
     useEffect(() => {
         (async () => {
             try {
+                setError("");
+
+                if (shareMode) {
+                    const loadedSurvey = await surveysApi.getPublicByToken(shareToken);
+                    setSurvey(loadedSurvey);
+                    setSurveyId(String(loadedSurvey.id));
+                    return
+                }
+
                 const list = await surveysApi.list();
                 setSurveys(list);
             } catch (e) {
-                setError(`Failed to load surveys: ${e.message}`);
+                setError(
+                    shareMode
+                    ? `Failed to load shared survey: ${e.message}` : `Failed to load surveys: ${e.message}`
+                );
             }
         })();
-    }, []);
+    }, [shareToken, shareMode]);
 
     // Index survey items by id for quick lookup
     const itemById = useMemo(() => {
@@ -79,12 +96,18 @@ export default function TakeSurvey() {
         setRevealed(false);
 
         try {
-            const sid = Number(surveyId);
+            const sid = shareMode ? survey?.id : Number(surveyId);
             const name = takerName.trim();
 
-            // Load survey details (options)
-            const loadedSurvey = await surveysApi.get(sid);
-            setSurvey(loadedSurvey);
+            if (!sid) {
+                throw new Error("Survey not found.");
+            }
+
+            let loadedSurvey = survey;
+            if (!shareMode){
+                loadedSurvey = await surveysApi.get(sid);
+                setSurvey(loadedSurvey);
+            }
 
             // Create instance
             const created = await instancesApi.create({ surveyId: sid, user: name });
@@ -177,9 +200,9 @@ export default function TakeSurvey() {
             setRevealed(true);
             setStatus("Answer saved.");
 
-            // Auto-advance to next unanswered item
+            // Auto advance to next unanswered item
             const freshItems = loaded?.itemInstances || [];
-            const nextIdx = itemInstances.findIndex(ii => ii.selectedAnswer == null);
+            const nextIdx = freshItems.findIndex(ii => ii.selectedAnswer == null);
             if (nextIdx >= 0) {
                 setCurrentIdx(nextIdx);
                 setSelectedAnswer("");
@@ -197,13 +220,18 @@ export default function TakeSurvey() {
      * a survey component.
      */
     function resetSession() {
-        setSurvey(null);
+        if (!shareMode) {
+            setSurvey(null);
+            setSurveyId("");
+        }
+
         setInstance(null);
         setSelectedAnswer("");
         setCurrentIdx(0);
         setRevealed(false);
         setStatus("");
         setError("");
+        setTakerName("");
     }
 
     return (
@@ -211,7 +239,9 @@ export default function TakeSurvey() {
             <div className={styles.shell}>
                 <div className={styles.topBar}>
                     <div>
-                        <h2 className={styles.h2}>Take Survey</h2>
+                        <h2 className={styles.h2}>
+                            {shareMode ? "Take Shared Survey" : "Take Survey"}
+                        </h2>
                         <p className={styles.sub}>Answer questions and see results when complete.</p>
                     </div>
 
@@ -228,19 +258,29 @@ export default function TakeSurvey() {
                     <section className={styles.card}>
                         <h3 className={styles.sectionTitle}>Start</h3>
 
-                        <label className={styles.label}>Survey</label>
-                        <select
-                            value={surveyId}
-                            onChange={(e) => setSurveyId(e.target.value)}
-                            className={styles.input}
-                        >
-                            <option value="">Select a survey…</option>
-                            {surveys.map(s => (
-                                <option key={s.id} value={s.id}>
-                                    #{s.id} — {s.title} ({s.state})
-                                </option>
-                            ))}
-                        </select>
+                        {!shareMode && (
+                            <>
+                                <label className={styles.label}>Survey</label>
+                                <select
+                                    value={surveyId}
+                                    onChange={(e) => setSurveyId(e.target.value)}
+                                    className={styles.input}
+                                >
+                                    <option value="">Select a survey…</option>
+                                    {surveys.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            #{s.id} — {s.title} ({s.state})
+                                        </option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+
+                        {shareMode && survey && (
+                            <div style={{ marginBottom: 12 }} className={styles.meta}>
+                                <strong>Shared survey:</strong> {survey.title}
+                            </div>
+                        )}
 
                         <label className={styles.label}>Your name</label>
                         <input
@@ -298,10 +338,6 @@ export default function TakeSurvey() {
                                 </button>
                             </div>
                         )}
-
-                        <div style={{ marginTop: 14 }} className={styles.meta}>
-                            (Future: this page can start from a shared link instead of picking a survey.)
-                        </div>
                     </section>
 
                     <section className={styles.card}>

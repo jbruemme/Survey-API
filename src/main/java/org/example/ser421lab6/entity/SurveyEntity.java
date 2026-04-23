@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Entity
@@ -36,4 +37,19 @@ public class SurveyEntity {
     )
 
     private List<SurveyItemEntity> items = new ArrayList<>();
+
+    @Column(unique = true, nullable = false)
+    private String shareToken;
+
+    @Column(nullable = false)
+    private boolean publicShareEnabled = true;
+
+    @PrePersist
+    public void prePersist() {
+        if (shareToken == null || shareToken.isBlank()) {
+            shareToken = UUID.randomUUID().toString();
+        }
+    }
+
+
 }
