@@ -5,8 +5,10 @@
  * 3. Error handling for non 200 OK responses
  * @type {{answer: (function(*): Promise<*>), get: (function(*): Promise<*>), create: (function(*): Promise<*>)}}
  */
-export async function requestJson(url, options = {}) {
-    const res = await fetch(url, {
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
+export async function requestJson(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
         headers: { "Content-Type": "application/json", ...(options.headers || {}) },
         ...options
     });
