@@ -1,7 +1,7 @@
 package org.example.ser421lab6.controller;
 
 import org.example.ser421lab6.dto.*;
-import org.example.ser421lab6.service.surveyItemService;
+import org.example.ser421lab6.service.SurveyItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class surveyItemController {
 
-    private final surveyItemService surveyItemService;
+    private final SurveyItemService surveyItemService;
 
     @Autowired
-    public surveyItemController(surveyItemService surveyItemService) {
+    public surveyItemController(SurveyItemService surveyItemService) {
         this.surveyItemService = surveyItemService;
     }
 

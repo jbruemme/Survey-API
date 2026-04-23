@@ -9,7 +9,8 @@ import lombok.Getter;
 @Getter
 public class SurveyItemInstanceDto {
     private Long id;
+    private Long surveyItemId;
     private String question;
     private String selectedAnswer;
-    private boolean correct;
+    private Boolean correct;
 }
