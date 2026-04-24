@@ -47,10 +47,9 @@ public class SharePreviewController {
      */
     @GetMapping(value = "/s/{shareToken}", produces = MediaType.TEXT_HTML_VALUE)
     public String previewSurvey(@PathVariable String shareToken) {
-        SurveyEntity survey = surveyRepository.findByShareToken(shareToken)
-                .orElseThrow(() -> new IllegalArgumentException("Survey not found."));
+        SurveyEntity survey = surveyRepository.findByShareToken(shareToken).orElse(null);
 
-        String title = escapeHtml(survey.getTitle());
+        String title = survey == null ? "Pulse Polling Survey" : escapeHtml(survey.getTitle());
         String frontendUrl = frontendBaseUrl + "/s/" + shareToken;
         String previewUrl = backendBaseUrl + "/s/" + shareToken;
         String imageUrl = frontendBaseUrl + "/pulse-preview.png";
