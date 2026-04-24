@@ -52,6 +52,7 @@ public class SharePreviewController {
 
         String title = escapeHtml(survey.getTitle());
         String frontendUrl = frontendBaseUrl + "/s/" + shareToken;
+        String previewUrl = backendBaseUrl + "/s/" + shareToken;
         String imageUrl = frontendBaseUrl + "/pulse-preview.png";
 
         return """
@@ -83,7 +84,7 @@ public class SharePreviewController {
                 title,
                 title,
                 imageUrl,
-                frontendUrl,
+                previewUrl,
                 title,
                 imageUrl,
                 frontendUrl,
