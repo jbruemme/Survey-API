@@ -67,6 +67,8 @@ public class SharePreviewController {
                     <meta property="og:title" content="%s" />
                     <meta property="og:description" content="Take this survey on Pulse Polling." />
                     <meta property="og:image" content="%s" />
+                    meta property="og:image:width" content="1200" />
+                    <meta property="og:image:height" content="630" />
                     <meta property="og:url" content="%s" />
 
                     <meta name="twitter:card" content="summary_large_image" />
