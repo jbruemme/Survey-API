@@ -200,7 +200,7 @@ public class SurveyService {
      * @return A full shareable url for creating a survey share card
      */
     private String buildPreviewShareLink(String shareToken) {
-        return publicBaseUrlProd + "/s/" + shareToken;
+        return publicBaseUrlProd + "/share/" + shareToken;
     }
 
     /**

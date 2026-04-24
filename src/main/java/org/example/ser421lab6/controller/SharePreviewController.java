@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/share")
 public class SharePreviewController {
 
     private final SurveyRepository surveyRepository;
@@ -45,7 +47,7 @@ public class SharePreviewController {
      *
      * @throws IllegalArgumentException if no survey exists for the provided share token
      */
-    @GetMapping(value = "/s/{shareToken}", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = "/{shareToken}", produces = MediaType.TEXT_HTML_VALUE)
     public String previewSurvey(@PathVariable String shareToken) {
         SurveyEntity survey = surveyRepository.findByShareToken(shareToken).orElse(null);
 
