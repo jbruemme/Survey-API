@@ -3,7 +3,7 @@ import "./styles/navbar.css"
 import TakeSurvey from "./pages/TakeSurvey";
 import CreateSurvey from "./pages/CreateSurvey";
 import Dashboard from "./pages/Dashboard";
-import logo from "./assets/pulse_logo.png"
+import logo from "../public/pulse-preview.png"
 import favicon from "./assets/pulse_favicon.png"
 import navLogo from "./assets/Pulse_logo_navbar.png"
 
