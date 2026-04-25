@@ -54,7 +54,7 @@ public class SharePreviewController {
 
         String title = escapeHtml(survey.getTitle());
         String frontendUrl = frontendBaseUrl + "/s/" + shareToken;
-        String previewUrl = backendBaseUrl + "/s/" + shareToken;
+        String previewUrl = backendBaseUrl + "/share/" + shareToken;
         String imageUrl = frontendBaseUrl + "/pulse-preview.png";
 
         return """
@@ -68,6 +68,8 @@ public class SharePreviewController {
                     <meta property="og:title" content="%s" />
                     <meta property="og:description" content="Take this survey on Pulse Polling." />
                     <meta property="og:image" content="%s" />
+                    <meta property="og:image:secure_url" content="%s" />
+                    <meta property="og:image:type" content="image/png" />
                     <meta property="og:image:width" content="1200" />
                     <meta property="og:image:height" content="630" />
                     <meta property="og:url" content="%s" />
@@ -87,6 +89,7 @@ public class SharePreviewController {
                 """.formatted(
                 title,
                 title,
+                imageUrl,
                 imageUrl,
                 previewUrl,
                 title,
