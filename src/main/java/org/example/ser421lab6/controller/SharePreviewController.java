@@ -5,10 +5,7 @@ import org.example.ser421lab6.entity.SurveyEntity;
 import org.example.ser421lab6.repository.SurveyRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,7 +45,10 @@ public class SharePreviewController {
      * @throws IllegalArgumentException if no survey exists for the provided share token
      */
     @GetMapping(value = "/{shareToken}", produces = MediaType.TEXT_HTML_VALUE)
-    public String previewSurvey(@PathVariable String shareToken) {
+    public String previewSurvey(
+            @PathVariable String shareToken,
+            @RequestHeader(value = "User-Agent", required = false) String userAgent
+    ) {
         SurveyEntity survey = surveyRepository.findByShareToken(shareToken)
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found."));
 
@@ -56,6 +56,18 @@ public class SharePreviewController {
         String frontendUrl = frontendBaseUrl + "/s/" + shareToken;
         String previewUrl = backendBaseUrl + "/share/" + shareToken;
         String imageUrl = frontendBaseUrl + "/pulse-preview.png";
+
+        boolean isCrawler = userAgent != null && (
+                userAgent.contains("facebookexternalhit") ||
+                        userAgent.contains("Facebot") ||
+                        userAgent.contains("Twitterbot") ||
+                        userAgent.contains("LinkedInBot")
+        );
+
+        String redirectTags = isCrawler ? "" : """
+            <meta http-equiv="refresh" content="0; url=%s" />
+            <script>window.location.href = "%s";</script>
+            """.formatted(frontendUrl, frontendUrl);
 
         return """
                 <!doctype html>
@@ -79,23 +91,21 @@ public class SharePreviewController {
                     <meta name="twitter:description" content="Take this survey on Pulse Polling." />
                     <meta name="twitter:image" content="%s" />
 
-                    <meta http-equiv="refresh" content="0; url=%s" />
+                    %s
                 </head>
                 <body>
                     <p>Opening survey...</p>
-                    <script>window.location.href = "%s";</script>
                 </body>
                 </html>
                 """.formatted(
                 title,
                 title,
-                imageUrl,
-                imageUrl,
                 previewUrl,
+                imageUrl,
+                imageUrl,
                 title,
                 imageUrl,
-                frontendUrl,
-                frontendUrl
+                redirectTags
         );
     }
 
