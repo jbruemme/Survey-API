@@ -100,9 +100,9 @@ public class SharePreviewController {
                 """.formatted(
                 title,
                 title,
+                imageUrl,
+                imageUrl,
                 previewUrl,
-                imageUrl,
-                imageUrl,
                 title,
                 imageUrl,
                 redirectTags

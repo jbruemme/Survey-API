@@ -25,3 +25,27 @@ body {
   color: var(--text);
   font-family: Inter, system-ui, Arial, sans-serif;
 }
+
+.delay1 { animation-delay: 80ms; }
+.delay2 { animation-delay: 160ms; }
+.delay3 { animation-delay: 240ms; }
+
+.fadeIn {
+  animation: fadeUpBounce 400ms ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeUpBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -54,7 +54,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} fadeIn`}>
             <div className={styles.shell}>
                 <div className={styles.topBar}>
                     <div>
