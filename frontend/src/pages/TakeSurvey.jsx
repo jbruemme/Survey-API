@@ -235,7 +235,7 @@ export default function TakeSurvey() {
     }
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} fadeIn`}>
             <div className={styles.shell}>
                 <div className={styles.topBar}>
                     <div>
@@ -286,7 +286,7 @@ export default function TakeSurvey() {
                         <input
                             value={takerName}
                             onChange={(e) => setTakerName(e.target.value)}
-                            placeholder="Jasyn"
+                            placeholder="Your name"
                             className={styles.input}
                         />
 
@@ -311,7 +311,6 @@ export default function TakeSurvey() {
                         {status && <div className={styles.statusOk}>{status}</div>}
                         {error && <div className={styles.statusErr}>Error: {error}</div>}
 
-                        {/* keep your instance details; give them meta style */}
                         {instance && (
                             <div style={{ marginTop: 12 }}>
                                 <div className={styles.meta}><strong>Instance:</strong> #{instance.id}</div>
@@ -348,9 +347,20 @@ export default function TakeSurvey() {
                         {instance && isComplete && <Results survey={survey} instance={instance} />}
 
                         {instance && !isComplete && currentSurveyItem && currentInstanceItem && (
-                            <>
+                            <div key={currentInstanceItem.id} className={`fadeIn`}>
                                 <div className={styles.meta}>
                                     Question {currentIdx + 1} of {progress.total}
+                                </div>
+
+                                <div className={styles.progressTrack}>
+                                    <div
+                                        className={styles.progressFill}
+                                        style={{
+                                            width: progress.total > 0
+                                                ? `${(progress.answered / progress.total) * 100}%`
+                                                : "0%"
+                                        }}
+                                    />
                                 </div>
 
                                 <div className={styles.qText}>{currentSurveyItem.question}</div>
@@ -363,7 +373,7 @@ export default function TakeSurvey() {
 
                                         return (
                                             <label
-                                                key={opt}
+                                                key={`${currentInstanceItem.id}-${opt}`}
                                                 className={`${styles.choice} ${busy || alreadyAnswered ? styles.choiceDisabled : ""}`}
                                             >
                                                 <input
@@ -383,15 +393,16 @@ export default function TakeSurvey() {
                                 <div className={styles.row}>
                                     <button onClick={gotoPrev} disabled={busy} className={styles.btn}>Prev</button>
                                     <button onClick={gotoNext} disabled={busy} className={styles.btn}>Next</button>
-                                    <button onClick={submitCurrentAnswer} disabled={busy} className={`${styles.btn} ${styles.primary}`}>
+                                    <button onClick={submitCurrentAnswer} disabled={busy}
+                                            className={`${styles.btn} ${styles.primary}`}>
                                         {currentInstanceItem.selectedAnswer != null ? "Reveal" : "Submit"}
                                     </button>
                                 </div>
 
                                 {(revealed || currentInstanceItem.selectedAnswer != null) && (
-                                    <AnswerReveal surveyItem={currentSurveyItem} instanceItem={currentInstanceItem} />
+                                    <AnswerReveal surveyItem={currentSurveyItem} instanceItem={currentInstanceItem}/>
                                 )}
-                            </>
+                            </div>
                         )}
                     </section>
                 </div>
@@ -449,19 +460,19 @@ function Results({ survey, instance }) {
     const correctCount = gradableItems.filter(ii => ii.correct === true).length;
 
     return (
-        <div>
+        <div className={`${styles.page} fadeIn`}>
             <h4 style={{ marginTop: 0 }}>Results</h4>
 
             <div className={styles.pill} style={{ marginBottom: 12 }}>
                 {gradableTotal > 0 ? (
                     <>
                         Score:
-                        <strong style={{ color: "var(--text", marginLeft: 6}}>
+                        <strong style={{ color: "var(--text)", marginLeft: 6}}>
                             {correctCount}/{gradableTotal}
                         </strong>
                     </>
                 ) : (
-                    <strong style={{ color: "var(--text"}}>Completed</strong>
+                    <strong style={{ color: "var(--text)"}}>Completed</strong>
                 )}
             </div>
 
@@ -484,7 +495,7 @@ function Results({ survey, instance }) {
                             {isGradable ? (
                                 <div className={styles.meta}>
                                     Correct{" "}
-                                    <strong style={{ color: "var(--text" }}>
+                                    <strong style={{ color: "var(--text)" }}>
                                         {item?.correctAnswer ?? "(unknown"}
                                     </strong>{" "}
                                     . {ii.correct === true ? "✅" : "❌"}
