@@ -3,6 +3,8 @@ import styles from "./CreateSurvey.module.css";
 import { surveysApi } from "../api/surveys";
 import { surveyItemsApi } from "../api/surveyItems";
 
+const DEV = import.meta.env.DEV;
+
 /**
  * CreateSurvey page component, the default export for CreateSurvey
  * @returns {JSX.Element} Default layout for the page
@@ -11,12 +13,11 @@ import { surveyItemsApi } from "../api/surveyItems";
 export default function CreateSurvey() {
     // Question form
     const [qText, setQText] = useState("");
-    const [qOptionsText, setQOptionsText] = useState("");
+    const [qOptions, setQOptions] = useState(["", ""]);
     const [qCorrect, setQCorrect] = useState("");
 
     // Survey form
     const [surveyTitle, setSurveyTitle] = useState("");
-    const [surveyState, setSurveyState] = useState("CREATED");
 
     // Local question bank for current session
     // TODO: add GET /api/survey-items to allow for saving of questions between multiple sessions
@@ -29,30 +30,70 @@ export default function CreateSurvey() {
     const [busy, setBusy] = useState(false);
     const [raw, setRaw] = useState("(nothing yet)");
 
-    const options = useMemo(() => {
-        return qOptionsText
-            .split("\n")
-            .map((o) => o.trim())
-            .filter(Boolean);
-    }, [qOptionsText]);
-
-    const canCreateQuestion =
-        qText.trim().length > 0 &&
-        options.length > 0 &&
-        !busy;
-
     const canCreateSurvey =
         surveyTitle.trim().length > 0 &&
         selectedItemIds.length > 0 &&
+        !busy;
+
+    const options = useMemo(() => {
+        return qOptions.map(o => o.trim()).filter(Boolean);
+    }, [qOptions]);
+
+    const hasDuplicateOptions = new Set(options.map(o => o.toLowerCase())).size !== options.length;
+
+    const canCreateQuestion =
+        qText.trim().length > 0 &&
+        options.length >= 2 &&
+        !hasDuplicateOptions &&
         !busy;
 
     /**
      * Testing function to show raw json in front end
      * @param obj The json object
      */
-    // TODO: Remove after debugging
     function showRaw(obj) {
+        if (!DEV) return;
         setRaw(obj ? JSON.stringify(obj, null, 2) : "(nothing yet)");
+    }
+
+    /**
+     * Update/edit a question option
+     * @param index Index of the selected option
+     * @param value Value of the index
+     */
+    function updateOption(index, value) {
+        setQOptions(prev => {
+            const oldValue = prev[index];
+
+            if (qCorrect && qCorrect === oldValue) {
+                setQCorrect("");
+            }
+
+            return prev.map((opt, i) => (i === index ? value : opt));
+        });
+    }
+
+    /**
+     * Add a question option
+     */
+    function addOption() {
+        setQOptions(prev => [...prev, ""]);
+    }
+
+    /**
+     * Remove a question option
+     * @param index Index of the selected option to be removed
+     */
+    function removeOption(index) {
+        setQOptions(prev => {
+            const removed = prev[index];
+
+            if (qCorrect === removed) {
+                setQCorrect("");
+            }
+
+            return prev.filter((_, i) => i !== index);
+        });
     }
 
     /**
@@ -60,7 +101,7 @@ export default function CreateSurvey() {
      */
     function clearQuestionForm() {
         setQText("");
-        setQOptionsText("");
+        setQOptions(["", ""]);
         setQCorrect("");
     }
 
@@ -115,15 +156,12 @@ export default function CreateSurvey() {
         try {
             const created = await surveysApi.create({
                 title: surveyTitle.trim(),
-                state: surveyState,
                 itemIds: selectedItemIds,
             });
 
             setStatus(`Created survey #${created.id}`);
             showRaw(created);
-
             setSurveyTitle("");
-            setSurveyState("CREATED");
             setSelectedItemIds([]);
         } catch (e) {
             setError(e.message);
@@ -176,31 +214,53 @@ export default function CreateSurvey() {
                             className={styles.input}
                         />
 
-                        <label className={styles.label}>Options (one per line)</label>
-                        <textarea
-                            value={qOptionsText}
-                            onChange={(e) => {
-                                setQOptionsText(e.target.value);
+                        <label className={styles.label}>Options</label>
 
-                                const nextOptions = e.target.value
-                                    .split("\n")
-                                    .map((o) => o.trim())
-                                    .filter(Boolean);
+                        <div className={styles.optionList}>
+                            {qOptions.map((option, index) => (
+                                <div key={index} className={styles.optionRow}>
+                                    <input
+                                        value={option}
+                                        onChange={(e) => updateOption(index, e.target.value)}
+                                        placeholder={`Option ${index + 1}`}
+                                        className={styles.input}
+                                    />
 
-                                if (qCorrect && !nextOptions.includes(qCorrect)) {
-                                    setQCorrect("");
-                                }
-                            }}
-                            className={styles.textarea}
-                        />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOption(index)}
+                                        disabled={busy || qOptions.length <= 2}
+                                        className={`${styles.btn} ${styles.ghost}`}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
 
-                        <label className={styles.label}>Correct Answer</label>
+                        <button
+                            type="button"
+                            onClick={addOption}
+                            disabled={busy}
+                            className={styles.btn}
+                            style={{marginTop: 10}}
+                        >
+                            + Add option
+                        </button>
+
+                        {hasDuplicateOptions && (
+                            <div className={styles.statusErr}>
+                                Options must be unique.
+                            </div>
+                        )}
+
+                        <label className={styles.label}>Correct Answer (Optional)</label>
                         <select
                             value={qCorrect}
                             onChange={(e) => setQCorrect(e.target.value)}
                             className={styles.select}
                         >
-                            <option value="">Select correct answer</option>
+                            <option value="">No Correct Answer</option>
                             {options.map((o) => (
                                 <option key={o} value={o}>
                                     {o}
@@ -227,13 +287,16 @@ export default function CreateSurvey() {
                             </button>
                         </div>
 
-                        <div className={styles.debugSection}>
-                            <h4 className={styles.debugTitle}>Debug</h4>
-                            <pre className={styles.pre}>{raw}</pre>
-                        </div>
+                        {DEV && (
+                            <div className={styles.debugSection}>
+                                <h4 className={styles.debugTitle}>Debug</h4>
+                                <pre className={styles.pre}>{raw}</pre>
+                            </div>
+                        )}
+
                     </section>
 
-                    {/* Question Bank + Create Survey */}
+                    {/* Question Bank */}
                     <section className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.sectionTitle}>2) Question Bank</h3>
@@ -252,15 +315,16 @@ export default function CreateSurvey() {
                                             onChange={() => toggleSelected(item.id)}
                                         />
                                         <span>
-                      <strong>#{item.id}</strong> — {item.question}
-                    </span>
+                                            <strong>#{item.id}</strong> — {item.question}
+                                         </span>
                                     </label>
                                 ))}
                             </div>
                         )}
+                    </section>
 
-                        <div className={styles.divider} />
-
+                    {/* Create Survey */}
+                    <section className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.sectionTitle}>3) Create Survey</h3>
                             <span className={styles.pill}>POST /api/surveys</span>
@@ -273,16 +337,6 @@ export default function CreateSurvey() {
                             placeholder="My New Survey"
                             className={styles.input}
                         />
-
-                        <label className={styles.label}>Survey State</label>
-                        <select
-                            value={surveyState}
-                            onChange={(e) => setSurveyState(e.target.value)}
-                            className={styles.select}
-                        >
-                            <option value="CREATED">CREATED</option>
-                            <option value="COMPLETED">COMPLETED</option>
-                        </select>
 
                         <div className={styles.row}>
                             <button
@@ -297,5 +351,6 @@ export default function CreateSurvey() {
                 </div>
             </div>
         </div>
-    );
+    )
+        ;
 }
