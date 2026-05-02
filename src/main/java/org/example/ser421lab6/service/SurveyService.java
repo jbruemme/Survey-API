@@ -77,21 +77,9 @@ public class SurveyService {
             throw new IllegalArgumentException("Survey title is a required field");
         }
 
-        if (surveyCreateDto.getState() == null || surveyCreateDto.getState().trim().isEmpty()) {
-            throw new IllegalArgumentException("Survey state is a required field");
-        }
-
         if (surveyCreateDto.getItemIds() == null || surveyCreateDto.getItemIds().isEmpty()) {
             throw new IllegalArgumentException("At least one survey item ID is required");
         }
-
-        SurveyEntity.SurveyState surveyState;
-        try {
-            surveyState = SurveyEntity.SurveyState.valueOf(surveyCreateDto.getState().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid survey state: " + surveyCreateDto.getState());
-        }
-
 
         // Survey item IDs validation, loads items once validated
         List<SurveyItemEntity> surveyItems = new ArrayList<>();
@@ -105,7 +93,7 @@ public class SurveyService {
         // Create and save the new survey
         SurveyEntity surveyEntity = new SurveyEntity();
         surveyEntity.setTitle(surveyCreateDto.getTitle());
-        surveyEntity.setState(surveyState);
+        surveyEntity.setState(SurveyEntity.SurveyState.CREATED);
         surveyEntity.setItems(surveyItems);
 
         SurveyEntity savedSurvey = surveyRepository.save(surveyEntity);
@@ -131,7 +119,6 @@ public class SurveyService {
         SurveyEntity savedSurvey = surveyRepository.save(survey);
 
         return toSummaryDto(savedSurvey);
-
     }
 
     /**

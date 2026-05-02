@@ -11,6 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class SurveyCreateDto {
     private String title;
-    private String state;
     private List<Long> itemIds;
 }

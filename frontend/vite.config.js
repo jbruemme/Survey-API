@@ -9,5 +9,10 @@ export default defineConfig({
       "/api": "http://localhost:8080",
       "/apidoc": "http://localhost:8080"
     }
+  },
+
+  esbuild: {
+    drop: ["console"]
   }
+
 })

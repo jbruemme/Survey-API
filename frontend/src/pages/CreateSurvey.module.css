@@ -54,13 +54,14 @@
 
 .grid {
     display: grid;
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-    gap: clamp(12px, 2vw, 20px);
+    grid-template-columns: 1fr;
+    gap: clamp(18px, 3vw, 28px);
     align-items: start;
 }
 
 .card {
     min-width: 0;
+    scroll-margin-top: 90px;
 }
 
 .cardHeader {

@@ -3,23 +3,8 @@ import "./styles/navbar.css"
 import TakeSurvey from "./pages/TakeSurvey";
 import CreateSurvey from "./pages/CreateSurvey";
 import Dashboard from "./pages/Dashboard";
-import logo from "../public/pulse-preview.png"
+import Home from "./pages/Home";
 import favicon from "./assets/pulse_favicon.png"
-import navLogo from "./assets/Pulse_logo_navbar.png"
-
-/**
- * Simple home page placeholder
- * @returns {JSX.Element} Default home page
- * @constructor
- */
-function Home() {
-    return (
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: 18 }}>
-            <h2 style={{ marginTop: 0 }}>Survey App</h2>
-            <p style={{ color: "var(--muted)" }}>Welcome to your Survey Platform.</p>
-        </div>
-    );
-}
 
 /**
  * Application routing
