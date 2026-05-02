@@ -181,14 +181,16 @@ export default function CreateSurvey() {
                         </p>
                     </div>
 
-                    <div className={styles.badges}>
-            <span className={styles.pill}>
-              Selected: {selectedItemIds.length}
-            </span>
-                        <span className={styles.pill}>
-              Bank: {bankItems.length}
-            </span>
-                    </div>
+                    {DEV && (
+                        <div className={styles.badges}>
+                            <span className={styles.pill}>
+                              Selected: {selectedItemIds.length}
+                            </span>
+                            <span className={styles.pill}>
+                              Bank: {bankItems.length}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {(status || error) && (
@@ -203,7 +205,9 @@ export default function CreateSurvey() {
                     <section className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.sectionTitle}>1) Create Question</h3>
-                            <span className={styles.pill}>POST /api/survey-items</span>
+                            {DEV && (
+                                <span className={styles.pill}>POST /api/survey-items</span>
+                            )}
                         </div>
 
                         <label className={styles.label}>Question</label>
@@ -300,7 +304,9 @@ export default function CreateSurvey() {
                     <section className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.sectionTitle}>2) Question Bank</h3>
-                            <span className={styles.pill}>select → itemIds</span>
+                            {DEV && (
+                                <span className={styles.pill}>select → itemIds</span>
+                            )}
                         </div>
 
                         {bankItems.length === 0 ? (
@@ -327,7 +333,9 @@ export default function CreateSurvey() {
                     <section className={styles.card}>
                         <div className={styles.cardHeader}>
                             <h3 className={styles.sectionTitle}>3) Create Survey</h3>
-                            <span className={styles.pill}>POST /api/surveys</span>
+                            {DEV && (
+                                <span className={styles.pill}>POST /api/surveys</span>
+                            )}
                         </div>
 
                         <label className={styles.label}>Survey Title</label>
