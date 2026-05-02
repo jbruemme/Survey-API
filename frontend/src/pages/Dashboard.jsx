@@ -2,6 +2,8 @@ import styles from "./Dashboard.module.css";
 import { useEffect, useState } from "react";
 import { surveysApi } from "../api/surveys";
 
+const DEV = import.meta.env.DEV;
+
 export default function Dashboard() {
     const [surveys, setSurveys] = useState([]);
     const [shareDataById, setShareDataById] = useState({});
@@ -74,7 +76,6 @@ export default function Dashboard() {
                     {surveys.map((survey) => {
                         const share = shareDataById[survey.id];
                         const isOpen = openShareId === survey.id;
-
                         return (
                             <section key={survey.id} className={styles.card}>
                                 <div className={styles.cardHeader}>
@@ -96,7 +97,9 @@ export default function Dashboard() {
 
                                 {isOpen && share && (
                                     <div className={styles.sharePanel}>
-                                        <pre>{JSON.stringify(share, null, 2)}</pre>
+                                        {DEV && (
+                                            <pre>{JSON.stringify(share, null, 2)}</pre>
+                                        )}
                                         <label className={styles.label}>Public Link</label>
                                         <div className={styles.shareRow}>
                                             <input
