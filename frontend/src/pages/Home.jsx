@@ -33,11 +33,15 @@ export default function Home() {
                     </div>
 
                     <div className={styles.videoCard}>
-                        <div className={styles.videoPlaceholder}>
-                            <div className={styles.playButton}>▶</div>
-                            <p>Embedded app demo video</p>
-                            <span>TODO: Replace with demo video</span>
-                        </div>
+                        <video
+                            className={styles.videoEmbed}
+                            controls
+                            preload="metadata"
+                            poster="/pulse-preview.png"
+                            >
+                            <source src="/Pulse-Demo.mp4" type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
                     </div>
                 </section>
 
@@ -105,6 +109,42 @@ export default function Home() {
                 </section>
 
                 <div className={styles.sectionDivider}/>
+
+                <section className={styles.section}>
+                    <h2>Future implementation</h2>
+
+                    <div className={styles.grid}>
+                        <div className={styles.card}>
+                            <h3>User state</h3>
+                            <p>
+                                Categorize surveys by user, allowing users to view their created surveys as well as their
+                                taken surveys. Customize dashboard to user preferences.
+                            </p>
+                        </div>
+
+                        <div className={styles.card}>
+                            <h3>Dynamic data analysis</h3>
+                            <p>
+                                Perform dynamic data analysis on your created surveys.
+                            </p>
+                        </div>
+
+                        <div className={styles.card}>
+                            <h3>Survey searching</h3>
+                            <p>
+                                Search the database for other user surveys via keyword/subject and view their results.
+                            </p>
+                        </div>
+
+                        <div className={styles.card}>
+                            <h3>Video/image support and free response</h3>
+                            <p>
+                                Survey options will be expanded to include videos/images and survey questions expanded
+                                to include free response answers.
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
             </div>
         </div>

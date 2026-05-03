@@ -151,16 +151,13 @@
     box-shadow: 0 18px 40px rgba(0,0,0,0.35);
 }
 
-.videoPlaceholder {
+.videoEmbed {
+    width: 100%;
     aspect-ratio: 16 / 9;
+    border: 0;
     border-radius: 16px;
+    display: block;
     background: #0b1220;
-    border: 1px dashed rgba(167,176,192,0.35);
-    display: grid;
-    place-items: center;
-    text-align: center;
-    color: var(--muted);
-    padding: 18px;
 }
 
 .playButton {
