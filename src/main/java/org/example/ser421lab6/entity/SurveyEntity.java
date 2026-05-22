@@ -51,5 +51,9 @@ public class SurveyEntity {
         }
     }
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
+    private UserEntity creator;
+
 
 }
