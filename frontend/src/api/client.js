@@ -8,9 +8,15 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export async function requestJson(path, options = {}) {
+    const token = localStorage.getItem("token");
+
     const res = await fetch(`${API_BASE}${path}`, {
-        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-        ...options
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            ...(token ? {Authorization: `Bearer ${token}`} : {}),
+            ...(options.headers || {})
+        }
     });
 
     const text = await res.text();
@@ -19,5 +25,6 @@ export async function requestJson(path, options = {}) {
     if (!res.ok) {
         throw new Error(data?.message || res.statusText);
     }
+
     return data;
 }
