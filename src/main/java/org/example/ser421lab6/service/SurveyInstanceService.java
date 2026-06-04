@@ -160,7 +160,8 @@ public class SurveyInstanceService {
                 survey.getTitle(),
                 survey.getState().name(),
                 surveyItemDtos,
-                survey.getShareToken()
+                survey.getShareToken(),
+                survey.getVisibility().name()
         );
 
         // Mapping survey instance items (User's answers)

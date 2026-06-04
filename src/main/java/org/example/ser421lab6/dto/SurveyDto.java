@@ -13,4 +13,5 @@ public class SurveyDto {
     private String state;
     private List<SurveyItemDto> items;
     private String shareUrl;
+    private String visibility;
 }

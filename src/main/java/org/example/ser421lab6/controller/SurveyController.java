@@ -20,33 +20,45 @@ public class SurveyController {
     }
 
     /*
-     * @api {get} /api/surveys Get all surveys
-     * @apiName GetSurveys
+     * @api {get} /api/surveys Get all current user's surveys
+     * @apiName GetUserSurveys
      * @apiGroup Survey
      *
-     * @apiSuccess {Number} id Survey unique ID.
-     * @apiSuccess {String} title Survey title.
-     * @apiSuccess {String} state Survey state (CREATED, COMPLETED, DELETED).
+     * @apiDescription
+     * Retrieves all surveys created by the currently authenticated user.
+     * This endpoint requires a valid JWT token.
+     *
+     * @apiHeader {String} Authorization Bearer JWT access token.
+     *
+     * @apiSuccess {Object[]} surveys List of surveys created by the authenticated user.
+     * @apiSuccess {Number} surveys.id Survey unique ID.
+     * @apiSuccess {String} surveys.title Survey title.
+     * @apiSuccess {String} surveys.state Survey state (CREATED, COMPLETED, DELETED).
+     * @apiSuccess {String} surveys.visibility Survey visibility (PRIVATE, UNLISTED, PUBLIC).
+     *
      * @apiSuccessExample {json} Success-Response:
      *   HTTP/1.1 200 OK
      *   [
      *     {
-     *         "id": 1,
-     *         "title": "Random Trivia",
-     *         "state": "COMPLETED"
+     *       "id": 1,
+     *       "title": "Coding Quiz",
+     *       "state": "CREATED",
+     *       "visibility": "PRIVATE"
      *     },
      *     {
-     *         "id": 2,
-     *         "title": "Sports Trivia",
-     *         "state": "COMPLETED"
+     *       "id": 2,
+     *       "title": "Java Basics Survey",
+     *       "state": "CREATED",
+     *       "visibility": "PUBLIC"
      *     }
-     * ]
+     *   ]
      *
-     * @apiError 405 Method Not Allowed Invalid HTTP verb.
+     * @apiError 401 Unauthorized Missing or invalid JWT token.
+     * @apiError 403 Forbidden Authenticated user does not have access.
      */
     @GetMapping("/surveys")
-    public ResponseEntity<List<SurveySummaryDto>> getAllSurveys() {
-        return ResponseEntity.ok(surveyService.getAllSurveys());
+    public ResponseEntity<List<SurveySummaryDto>> getCurrentUserSurveys() {
+        return ResponseEntity.ok(surveyService.getCurrentUserSurveys());
     }
 
     /*

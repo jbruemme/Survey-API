@@ -7,9 +7,12 @@ import org.example.ser421lab6.dto.SurveyShareDto;
 import org.example.ser421lab6.dto.SurveySummaryDto;
 import org.example.ser421lab6.entity.SurveyEntity;
 import org.example.ser421lab6.entity.SurveyItemEntity;
+import org.example.ser421lab6.entity.UserEntity;
 import org.example.ser421lab6.repository.SurveyItemRepository;
 import org.example.ser421lab6.repository.SurveyRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,12 +43,13 @@ public class SurveyService {
      */
 
     /**
-     * Function to get all surveys and map them to SurveySummaryDto
+     * Function to get all current user's surveys and map them to SurveySummaryDto
      * @return List of SurveySummaryDto objects
      */
     @Transactional(readOnly = true)
-    public List<SurveySummaryDto> getAllSurveys() {
-        return surveyRepository.findAll().stream().map(this::toSummaryDto).toList();
+    public List<SurveySummaryDto> getCurrentUserSurveys() {
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+        return surveyRepository.findByCreator(currentUser).stream().map(this::toSummaryDto).toList();
     }
 
 
@@ -91,10 +95,12 @@ public class SurveyService {
         }
 
         // Create and save the new survey
+        UserEntity currentUser = getCurrentAuthenticatedUser();
         SurveyEntity surveyEntity = new SurveyEntity();
         surveyEntity.setTitle(surveyCreateDto.getTitle());
         surveyEntity.setState(SurveyEntity.SurveyState.CREATED);
         surveyEntity.setItems(surveyItems);
+        surveyEntity.setCreator(currentUser);
 
         SurveyEntity savedSurvey = surveyRepository.save(surveyEntity);
 
@@ -131,7 +137,7 @@ public class SurveyService {
         SurveyEntity survey = surveyRepository.findById(surveyId)
                 .orElseThrow(() -> new IllegalArgumentException("Survey with: " + surveyId + " does not exist."));
 
-        if (!survey.isPublicShareEnabled()) {
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
             throw new IllegalArgumentException("Public sharing is disabled for this survey.");
         }
 
@@ -157,7 +163,7 @@ public class SurveyService {
         SurveyEntity survey = surveyRepository.findByShareToken(shareToken)
                 .orElseThrow(() -> new IllegalArgumentException("Survey with: " + shareToken + " does not exist."));
 
-        if (!survey.isPublicShareEnabled()) {
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
             throw new IllegalArgumentException("Public sharing is disabled for this survey.");
         }
 
@@ -242,7 +248,8 @@ public class SurveyService {
         return new SurveySummaryDto(
                 survey.getId(),
                 survey.getTitle(),
-                survey.getState().name()
+                survey.getState().name(),
+                survey.getVisibility().name()
         );
     }
 
@@ -264,9 +271,22 @@ public class SurveyService {
                                 item.getCorrectAnswer()
                         )
                 ).toList(),
-                buildFrontEndShareLink(survey.getShareToken())
+                buildFrontEndShareLink(survey.getShareToken()),
+                survey.getVisibility().name()
         );
     }
 
+    /*
+    ===================================== User Helper Methods =======================================================
+     */
+
+    /**
+     * Helper function to retrieve the current authenticated user
+     * @return The authenticated UserEntity placed in the Security context through the JWT filter.
+     */
+    private UserEntity getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (UserEntity) authentication.getPrincipal();
+    }
 
 }
