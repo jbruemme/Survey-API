@@ -1,90 +1,128 @@
-# Spring Boot Survey API
+# Pulse Polling
 
-[![Java](https://img.shields.io/badge/Java-17+-orange)](https://www.oracle.com/java/)  
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)  
-[![License](https://img.shields.io/badge/License-Educational-blue)](LICENSE)
-
----
-
-## Overview
-
-This project is a **Spring Boot REST API** built with **Gradle** and an **in-memory data store**.  
-It provides endpoints for managing surveys, survey items, and survey instances — all bootstrapped automatically on application startup.
-
-When launched, the application preloads:
-- **5 Survey Items**
-- **2 Surveys**
-- **2 Survey Instances**
-
-API documentation is included under the root project folder in the **`/apidoc`** directory.  
-The provided `index.html` file contains full documentation for all available endpoints.
-
----
+Pulse Polling is a full-stack survey platform that allows users to create, share, take, and manage surveys through a modern web interface.
 
 ## Features
 
-- **9 REST API Endpoints** for surveys, survey items, and survey instances.
-- **In-memory data store** (no database required).
-- **Auto-seeded sample data** on startup for easy testing.
-- **Postman collection included** — import `SER 421 Assignment 6.postman_collection` directly into Postman.
-- Each endpoint includes **success and failure** test cases.
-- **Cross-platform Gradle wrapper** for simplified builds.
+### Authentication & User Management
 
----
+- User registration with password validation requirements
+- Secure login using JWT
+- BCrypt password hashing
+- Protected routes for authenticated users
+- User-specific survey ownership
+- Persistent login state on the frontend
 
-## Technologies Used
+### Survey Creation
 
-- **Java 17+** – Primary programming language.
-- **Spring Boot 3.x** – Framework for RESTful service development.
-- **Gradle** – Build automation and dependency management.
-- **In-memory data store** – Lightweight runtime persistence.
-- **Postman** – For API endpoint testing and validation.
+- Create custom surveys
+- Add multiple survey questions
+- Configure answer options
+- Store surveys in PostgreSQL
+- Associate surveys with their creator
 
----
+### Survey Management
 
-## Installation
+- User state Dashboard only displays surveys owned by the authenticated user
+- Survey visibility controls:
+  - PRIVATE
+  - UNLISTED
+  - PUBLIC
+- Soft delete support
+- Shareable survey links
+- Survey ownership enforcement
 
-1. Clone the repository:
+### Survey Sharing
 
-   ```bash
-   git clone https://github.com/jbruemme/Survey-API.git
-   cd Survey-API
-    ```
-   
----
-   
-## Usage
-1. Run the application using Gradle
-   - CMD:
-      ```bash
-      gradlew bootRun
-      ```
-   - PowerShell
-      ```bash
-     .\gradlew bootRun
-     ```
-   - macOS & Linux:
-      ```bash
-     ./gradlew bootRun
-     ```
-2. Frontend UI:
-   ```bash
-   http://localhost:8080/
-   ```
-3. REST API Base Path:
-   ```bash
-   http://localhost:8080/api
-   ```
-3. API documentation:
-   ```bash
-   /apidoc/index.html
-   ```
+- Public survey sharing via unique share tokens
+- Social media sharing support
+- Open Graph metadata for rich link previews
+- Facebook, LinkedIn, and X integration
 
----
+### Frontend
 
-## Future Implementation
-Future implementation of this project will include a frontend web interface to:
-   - Create and manage surveys visually.
-   - Submit and view survey responses.
-   - Display analytics and summary results dynamically.
+- React + Vite
+- React Router
+- Protected routes
+- Responsive dashboard interface
+
+### Backend
+
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- JPA/Hibernate
+- PostgreSQL
+
+## Tech Stack
+
+### Backend
+- Java 17
+- Spring Boot
+- Spring Security
+- PostgreSQL
+- JWT
+- BCrypt
+
+### Frontend
+- React
+- Vite
+- JavaScript
+- CSS
+
+### Infrastructure
+- Docker
+- Docker Compose
+- Render
+- Vercel
+
+## Local Development
+
+### Start PostgreSQL
+
+```bash
+docker compose up -d
+```
+
+### Start Backend
+
+```bash
+gradlew bootRun
+```
+
+### Start Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend URL:
+
+```text
+http://localhost:5173
+```
+
+Backend URL:
+
+```text
+http://localhost:8080
+```
+
+## Future Enhancements
+
+- Survey analytics dashboard
+- Statistical analysis and visualizations
+- Public survey discovery
+- Export survey results
+
+## Author
+
+Jasyn Bruemmer
+
+LinkedIn: https://www.linkedin.com/in/jasyn-leo-bruemmer
+
+GitHub: https://github.com/jasynbruemmer
+
 
