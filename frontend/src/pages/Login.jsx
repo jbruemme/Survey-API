@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authApi } from "../api/auth";
+import styles from "./Auth.module.css"
 
 export default function Login() {
     const navigate = useNavigate();
@@ -30,30 +31,40 @@ export default function Login() {
     }
 
     return (
-        <div>
-            <h2>Login</h2>
+        <div className={styles.page}>
+            <section className={styles.card}>
+                <h2 className={styles.title}>Welcome back</h2>
+                <p className={styles.sub}>Log in to manage and share your surveys.</p>
 
-            <form onSubmit={handleSubmit}>
-                <input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    type="email"
-                />
 
-                <input
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    type="password"
-                />
+                <form className={styles.form} onSubmit={handleSubmit}>
+                    <input
+                        className={styles.input}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email"
+                        type="email"
+                    />
 
-                <button type="submit" disabled={busy}>
-                    {busy ? "Logging in..." : "Login"}
-                </button>
-            </form>
+                    <input
+                        className={styles.input}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                        type="password"
+                    />
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
+                    <button className={styles.button} type="submit" disabled={busy}>
+                        {busy ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+
+                {error && <p style={{color: "red"}}>{error}</p>}
+
+                <div className={styles.footer}>
+                    New to Pulse Polling? <Link to="/register">Create an account</Link>
+                </div>
+            </section>
         </div>
     );
 }

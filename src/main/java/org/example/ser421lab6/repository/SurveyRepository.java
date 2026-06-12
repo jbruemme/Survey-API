@@ -11,6 +11,14 @@ public interface SurveyRepository extends JpaRepository<SurveyEntity, Long> {
 
     Optional<SurveyEntity> findByShareToken(String shareToken);
 
-    List<SurveyEntity> findByCreator(UserEntity creator);
+    List<SurveyEntity> findByCreatorAndStateNot(
+            UserEntity creator,
+            SurveyEntity.SurveyState state
+    );
+
+    List<SurveyEntity> findByVisibilityAndStateNot(
+            SurveyEntity.SurveyVisibility visibility,
+            SurveyEntity.SurveyState state
+    );
 
 }

@@ -44,7 +44,7 @@ export default function TakeSurvey() {
                     return
                 }
 
-                const list = await surveysApi.list();
+                const list = await surveysApi.publicList();
                 setSurveys(list);
             } catch (e) {
                 setError(

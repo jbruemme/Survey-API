@@ -1,10 +1,7 @@
 package org.example.ser421lab6.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ser421lab6.dto.SurveyCreateDto;
-import org.example.ser421lab6.dto.SurveyDto;
-import org.example.ser421lab6.dto.SurveyShareDto;
-import org.example.ser421lab6.dto.SurveySummaryDto;
+import org.example.ser421lab6.dto.*;
 import org.example.ser421lab6.entity.SurveyEntity;
 import org.example.ser421lab6.entity.SurveyItemEntity;
 import org.example.ser421lab6.entity.UserEntity;
@@ -49,7 +46,11 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public List<SurveySummaryDto> getCurrentUserSurveys() {
         UserEntity currentUser = getCurrentAuthenticatedUser();
-        return surveyRepository.findByCreator(currentUser).stream().map(this::toSummaryDto).toList();
+        return surveyRepository
+                .findByCreatorAndStateNot(currentUser, SurveyEntity.SurveyState.DELETED)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
     }
 
 
@@ -172,6 +173,56 @@ public class SurveyService {
         }
 
         return toSurveyDto(survey);
+    }
+
+    /**
+     * Function to update a surveys visibility
+     * @param surveyId The ID of the survey to be updated
+     * @param request The request containing the new visibility
+     * @return SurveySummaryDto containing the updated visibility of the survey
+     */
+    @Transactional
+    public SurveySummaryDto updateSurveyVisibility(Long surveyId, SurveyVisibilityUpdateDto request) {
+        // Getting current user and survey to be updated
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+        SurveyEntity survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new IllegalArgumentException("Survey with ID: " + surveyId + " does not exist."));
+
+        // Checking that the user who made request has same ID as the owner of the survey
+        if (!survey.getCreator().getId().equals(currentUser.getId())) {
+            throw new IllegalArgumentException("You do not have permission to update survey.");
+        }
+
+        // Attempting to update the visibility, check that the request is a valid visibility
+        SurveyEntity.SurveyVisibility newVisibility;
+        try {
+            newVisibility = SurveyEntity.SurveyVisibility.valueOf(request.visibility().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid visibility: " + request.visibility());
+        }
+
+        // Setting the updated visibility, saving survey, and returning updated survey summary
+        survey.setVisibility(newVisibility);
+        SurveyEntity savedSurvey = surveyRepository.save(survey);
+        return toSummaryDto(savedSurvey);
+
+    }
+
+    /**
+     * Function to retrieve all public surveys
+     * @return List of all public surveys as SurveySummaryDtos
+     */
+    @Transactional(readOnly = true)
+    public List<SurveySummaryDto> getPublicSurveys() {
+        return surveyRepository
+                .findByVisibilityAndStateNot(
+                        SurveyEntity.SurveyVisibility.PUBLIC,
+                        SurveyEntity.SurveyState.DELETED
+                )
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+
     }
 
     /*

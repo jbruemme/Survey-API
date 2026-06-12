@@ -6,18 +6,29 @@ import { requestJson } from "./client";
  */
 export const surveysApi = {
     list: () => requestJson("/api/surveys"),
+    publicList: () => requestJson("/api/public/surveys"),
     get: (id) => requestJson(`/api/surveys/${id}`),
+
     create: (payload) =>
         requestJson("/api/surveys", {
             method: "POST",
             body: JSON.stringify(payload),
         }),
+
     delete: (id) =>
         requestJson(`/api/surveys/${id}`, {
             method: "DELETE",
         }),
+
     getPublicByToken: (shareToken) =>
         requestJson(`/api/public/surveys/${shareToken}`),
+
     getShareLinks: (id) =>
         requestJson(`/api/surveys/${id}/share`),
+
+    updateVisibility: (id, visibility) =>
+        requestJson(`/api/surveys/${id}/visibility`, {
+            method: "PATCH",
+            body: JSON.stringify({ visibility }),
+        }),
 };

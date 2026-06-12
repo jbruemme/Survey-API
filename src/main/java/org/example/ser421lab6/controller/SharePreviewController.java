@@ -52,6 +52,14 @@ public class SharePreviewController {
         SurveyEntity survey = surveyRepository.findByShareToken(shareToken)
                 .orElseThrow(() -> new IllegalArgumentException("Survey not found."));
 
+        if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new IllegalArgumentException("Survey not found.");
+        }
+
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
+            throw new IllegalArgumentException("Survey not found.");
+        }
+
         String title = escapeHtml(survey.getTitle());
         String frontendUrl = frontendBaseUrl + "/s/" + shareToken;
         String previewUrl = backendBaseUrl + "/share/" + shareToken;

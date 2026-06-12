@@ -1,6 +1,8 @@
 package org.example.ser421lab6.controller;
 
+import jakarta.validation.Valid;
 import org.example.ser421lab6.dto.*;
+import org.example.ser421lab6.model.Survey;
 import org.example.ser421lab6.service.SurveyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -266,6 +268,23 @@ public class SurveyController {
             return ResponseEntity.ok(shareDto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/public/surveys")
+    public ResponseEntity<List<SurveySummaryDto>> getPublicSurveys() {
+        return ResponseEntity.ok(surveyService.getPublicSurveys());
+    }
+
+    @PatchMapping("/surveys/{id}/visibility")
+    public ResponseEntity<?> updateSurveyVisibility(@PathVariable Long id,
+                                                    @Valid @RequestBody SurveyVisibilityUpdateDto request
+    ) {
+        try {
+            SurveySummaryDto updatedSurvey = surveyService.updateSurveyVisibility(id, request);
+            return ResponseEntity.ok(updatedSurvey);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
     }
 
