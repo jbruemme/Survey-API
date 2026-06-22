@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Navbar from "./components/Navbar.jsx";
+import SurveyResults from "./pages/SurveyResults";
 
 /**
  * Application routing
@@ -36,6 +37,13 @@ export default function App() {
                             <Dashboard />
                         </ProtectedRoute>
                     }
+                />
+                <Route path="/surveys/:id/results"
+                element={
+                    <ProtectedRoute>
+                        <SurveyResults />
+                    </ProtectedRoute>
+                }
                 />
                 <Route path="/s/:shareToken" element={<TakeSurvey/>} />
                 <Route path="/login" element={<Login />} />

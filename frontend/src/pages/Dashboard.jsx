@@ -2,6 +2,7 @@ import styles from "./Dashboard.module.css";
 import { useEffect, useState } from "react";
 import { surveysApi } from "../api/surveys";
 import { Share2, Eye, Trash2, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DEV = import.meta.env.DEV;
 
@@ -13,6 +14,7 @@ export default function Dashboard() {
     const [status, setStatus] = useState("");
     const [openMenuId, setOpenMenuId] = useState(null);
     const [openVisibilityId, setOpenVisibilityId] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
@@ -129,7 +131,11 @@ export default function Dashboard() {
                         const share = shareDataById[survey.id];
                         const isOpen = openShareId === survey.id;
                         return (
-                            <section key={survey.id} className={styles.card}>
+                            <section
+                                key={survey.id}
+                                className={styles.card}
+                                onClick={() => navigate(`/surveys/${survey.id}/results`)}
+                            >
                                 <div className={styles.cardHeader}>
                                     <div>
                                         <h3 className={styles.title}>{survey.title}</h3>
@@ -145,7 +151,10 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
-                                    <div className={styles.menuWrap}>
+                                    <div
+                                        className={styles.menuWrap}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <button
                                             className={styles.menuButton}
                                             type="button"

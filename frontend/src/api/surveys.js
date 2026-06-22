@@ -31,4 +31,6 @@ export const surveysApi = {
             method: "PATCH",
             body: JSON.stringify({ visibility }),
         }),
+
+    getResults: (id) => requestJson(`/api/surveys/${id}/results`),
 };
