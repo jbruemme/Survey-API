@@ -8,6 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SurveyInstanceCreateDto {
-    private String user;
     private Long surveyId;
 }

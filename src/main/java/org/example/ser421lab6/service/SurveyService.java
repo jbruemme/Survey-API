@@ -1,22 +1,29 @@
 package org.example.ser421lab6.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.ser421lab6.dto.SurveyCreateDto;
-import org.example.ser421lab6.dto.SurveyDto;
-import org.example.ser421lab6.dto.SurveyShareDto;
-import org.example.ser421lab6.dto.SurveySummaryDto;
-import org.example.ser421lab6.entity.SurveyEntity;
-import org.example.ser421lab6.entity.SurveyItemEntity;
+import org.example.ser421lab6.dto.*;
+import org.example.ser421lab6.dto.results.AnswerResultsDto;
+import org.example.ser421lab6.dto.results.QuestionResultsDto;
+import org.example.ser421lab6.dto.results.SurveyResultsDto;
+import org.example.ser421lab6.entity.*;
+import org.example.ser421lab6.exception.InvalidSurveyVisibilityException;
+import org.example.ser421lab6.exception.SurveyNotFoundException;
+import org.example.ser421lab6.exception.UnauthorizedAccessException;
+import org.example.ser421lab6.repository.SurveyInstanceRepository;
 import org.example.ser421lab6.repository.SurveyItemRepository;
 import org.example.ser421lab6.repository.SurveyRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +35,7 @@ public class SurveyService {
 
     private final SurveyRepository surveyRepository;
     private final SurveyItemRepository surveyItemRepository;
+    private final SurveyInstanceRepository surveyInstanceRepository;
 
     @Value("${app.frontend-base-url}")
     private String frontendBaseUrl;
@@ -40,12 +48,17 @@ public class SurveyService {
      */
 
     /**
-     * Function to get all surveys and map them to SurveySummaryDto
+     * Function to get all current user's surveys and map them to SurveySummaryDto
      * @return List of SurveySummaryDto objects
      */
     @Transactional(readOnly = true)
-    public List<SurveySummaryDto> getAllSurveys() {
-        return surveyRepository.findAll().stream().map(this::toSummaryDto).toList();
+    public List<SurveySummaryDto> getCurrentUserSurveys() {
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+        return surveyRepository
+                .findByCreatorAndStateNot(currentUser, SurveyEntity.SurveyState.DELETED)
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
     }
 
 
@@ -56,6 +69,21 @@ public class SurveyService {
      */
     @Transactional(readOnly = true)
     public SurveyDto getSurveyById(Long id) {
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+
+        SurveyEntity survey = surveyRepository.findById(id)
+                .orElseThrow(() ->
+                        new SurveyNotFoundException("Survey with ID " + id + " does not exist.")
+                );
+
+        if (!survey.getCreator().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to access this survey.");
+        }
+
+        if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new SurveyNotFoundException("Survey with ID " + id + " does not exist.");
+        }
+
         return surveyRepository.findById(id).map(this::toSurveyDto).orElse(null);
     }
 
@@ -91,10 +119,12 @@ public class SurveyService {
         }
 
         // Create and save the new survey
+        UserEntity currentUser = getCurrentAuthenticatedUser();
         SurveyEntity surveyEntity = new SurveyEntity();
         surveyEntity.setTitle(surveyCreateDto.getTitle());
         surveyEntity.setState(SurveyEntity.SurveyState.CREATED);
         surveyEntity.setItems(surveyItems);
+        surveyEntity.setCreator(currentUser);
 
         SurveyEntity savedSurvey = surveyRepository.save(surveyEntity);
 
@@ -111,8 +141,12 @@ public class SurveyService {
 
         // Search for survey
         SurveyEntity survey = surveyRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("Survey with: " + id + " does not exist.")
+                new SurveyNotFoundException("Survey with: " + id + " does not exist.")
                 );
+
+        if (!survey.getCreator().getId().equals(getCurrentAuthenticatedUser().getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to delete this survey.");
+        }
 
         //Mark survey as DELETED
         survey.setState(SurveyEntity.SurveyState.DELETED);
@@ -129,10 +163,14 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyShareDto getShareLinks(Long surveyId) {
         SurveyEntity survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new IllegalArgumentException("Survey with: " + surveyId + " does not exist."));
+                .orElseThrow(() -> new SurveyNotFoundException("Survey with: " + surveyId + " does not exist."));
 
-        if (!survey.isPublicShareEnabled()) {
-            throw new IllegalArgumentException("Public sharing is disabled for this survey.");
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
+            throw new InvalidSurveyVisibilityException("Public sharing is disabled for this survey.");
+        }
+
+        if (!survey.getCreator().getId().equals(getCurrentAuthenticatedUser().getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to share this survey.");
         }
 
         String frontendUrl = buildFrontEndShareLink(survey.getShareToken());
@@ -155,10 +193,10 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public SurveyDto getSurveyByShareToken(String shareToken) {
         SurveyEntity survey = surveyRepository.findByShareToken(shareToken)
-                .orElseThrow(() -> new IllegalArgumentException("Survey with: " + shareToken + " does not exist."));
+                .orElseThrow(() -> new SurveyNotFoundException("Survey not found."));
 
-        if (!survey.isPublicShareEnabled()) {
-            throw new IllegalArgumentException("Public sharing is disabled for this survey.");
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
+            throw new InvalidSurveyVisibilityException("Public sharing is disabled for this survey.");
         }
 
         if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
@@ -166,6 +204,186 @@ public class SurveyService {
         }
 
         return toSurveyDto(survey);
+    }
+
+    /**
+     * Function to update a surveys visibility
+     * @param surveyId The ID of the survey to be updated
+     * @param request The request containing the new visibility
+     * @return SurveySummaryDto containing the updated visibility of the survey
+     */
+    @Transactional
+    public SurveySummaryDto updateSurveyVisibility(Long surveyId, SurveyVisibilityUpdateDto request) {
+        // Getting current user and survey to be updated
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+        SurveyEntity survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new SurveyNotFoundException("Survey with ID: " + surveyId + " does not exist."));
+
+        // Checking that the user who made request has same ID as the owner of the survey
+        if (!survey.getCreator().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to update survey.");
+        }
+
+        // Attempting to update the visibility, check that the request is a valid visibility
+        SurveyEntity.SurveyVisibility newVisibility;
+        try {
+            newVisibility = SurveyEntity.SurveyVisibility.valueOf(request.visibility().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidSurveyVisibilityException("Invalid visibility: " + request.visibility());
+        }
+
+        // Setting the updated visibility, saving survey, and returning updated survey summary
+        survey.setVisibility(newVisibility);
+        SurveyEntity savedSurvey = surveyRepository.save(survey);
+        return toSummaryDto(savedSurvey);
+
+    }
+
+    /**
+     * Function to retrieve all public surveys
+     * @return List of all public surveys as SurveySummaryDtos
+     */
+    @Transactional(readOnly = true)
+    public List<SurveySummaryDto> getPublicSurveys() {
+        return surveyRepository
+                .findByVisibilityAndStateNot(
+                        SurveyEntity.SurveyVisibility.PUBLIC,
+                        SurveyEntity.SurveyState.DELETED
+                )
+                .stream()
+                .map(this::toSummaryDto)
+                .toList();
+
+    }
+
+    /**
+     * Function to retrieve a public survey by its ID
+     * @return SurveyDto of the requested survey
+     */
+    @Transactional(readOnly = true)
+    public SurveyDto getPublicSurveyById(Long id) {
+
+        SurveyEntity survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new SurveyNotFoundException("Survey with ID: " + id + " does not exist."));
+
+        if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new SurveyNotFoundException("Survey not found.");
+        }
+
+        if (survey.getVisibility() != SurveyEntity.SurveyVisibility.PUBLIC) {
+            throw new InvalidSurveyVisibilityException("Public sharing is disabled for this survey.");
+        }
+
+        return toSurveyDto(survey);
+    }
+
+    /**
+     * Function to retrieve survey results of a requested survey
+     * @param surveyId The ID of the survey requesting results
+     * @return SurveyResultsDto
+     */
+    @Transactional(readOnly = true)
+    public SurveyResultsDto getSurveyResults(Long surveyId) {
+
+        UserEntity currentUser = getCurrentAuthenticatedUser();
+
+        SurveyEntity survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() ->
+                        new SurveyNotFoundException("Survey with ID " + surveyId + " does not exist.")
+                );
+
+        if(!survey.getCreator().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to view these results.");
+        }
+
+        if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new SurveyNotFoundException("Survey with ID " + surveyId + " does not exist.");
+        }
+
+        // Getting list of all completed instances of requested survey and storing total responses
+        List<SurveyInstanceEntity> completedInstances =
+                surveyInstanceRepository.findBySurveyIdAndState(
+                        surveyId,
+                        SurveyInstanceEntity.SurveyInstanceState.COMPLETED
+                        );
+        int totalResponses = completedInstances.size();
+
+        // Looping through all survey questions and creating QuestionResultsDto for each survey question
+        List<QuestionResultsDto> questionResults = survey.getItems()
+                .stream()
+                .map(item -> {
+                    // Map for answer options and number of times each is selected
+                    Map<String, Integer> answerCounts = new LinkedHashMap<>();
+
+                    // Initializing all options to 0
+                    for (String option : item.getOptions()) {
+                        answerCounts.put(option, 0);
+                    }
+
+                    for (SurveyInstanceEntity instance : completedInstances) {
+                        instance.getItemInstances()
+                                .stream()
+                                .filter(itemInstance ->
+                                        itemInstance.getSurveyItem().getId().equals(item.getId())
+                                )
+                                .findFirst()
+                                .ifPresent(itemInstance -> {
+                                    String answer = itemInstance.getUserAnswer();
+                                    if (answer != null && !answer.isBlank()) {
+                                        answerCounts.merge(answer, 1, Integer::sum);
+                                    }
+                                });
+                    }
+
+                    // Counting total answer for current question
+                    int totalAnswers = answerCounts.values()
+                            .stream()
+                            .mapToInt(Integer::intValue)
+                            .sum();
+
+                    // Converting each answer into AnswerResultDto
+                    List<AnswerResultsDto> answers = answerCounts.entrySet()
+                            .stream()
+                            .map(entry -> {
+                                // Extracting answer and count from map
+                               String answer = entry.getKey();
+                               int count = entry.getValue();
+
+                               // Calculating percentage
+                               double percentage = totalAnswers == 0 ? 0.0 : (count * 100.0 / totalAnswers);
+
+                               // Building AnswerResultDto
+                                Boolean correct = null;
+                                if (item.getCorrectAnswer() != null && !item.getCorrectAnswer().isBlank()) {
+                                    correct = answer.equals(item.getCorrectAnswer());
+                                }
+                               return new AnswerResultsDto(
+                                       answer,
+                                       count,
+                                       percentage,
+                                       correct
+                               );
+                            })
+                            .toList();
+
+                    // Building QuestionResultDto returning result summary for one question
+                    return new QuestionResultsDto(
+                            item.getId(),
+                            item.getQuestion(),
+                            item.getCorrectAnswer(),
+                            totalAnswers,
+                            answers
+                    );
+                })
+                .toList();
+
+        // Building SurveyResultDto returning result summary for full survey
+        return new SurveyResultsDto(
+                survey.getId(),
+                survey.getTitle(),
+                totalResponses,
+                questionResults
+        );
     }
 
     /*
@@ -242,7 +460,8 @@ public class SurveyService {
         return new SurveySummaryDto(
                 survey.getId(),
                 survey.getTitle(),
-                survey.getState().name()
+                survey.getState().name(),
+                survey.getVisibility().name()
         );
     }
 
@@ -264,9 +483,22 @@ public class SurveyService {
                                 item.getCorrectAnswer()
                         )
                 ).toList(),
-                buildFrontEndShareLink(survey.getShareToken())
+                buildFrontEndShareLink(survey.getShareToken()),
+                survey.getVisibility().name()
         );
     }
 
+    /*
+    ===================================== User Helper Methods =======================================================
+     */
+
+    /**
+     * Helper function to retrieve the current authenticated user
+     * @return The authenticated UserEntity placed in the Security context through the JWT filter.
+     */
+    private UserEntity getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (UserEntity) authentication.getPrincipal();
+    }
 
 }

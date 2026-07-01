@@ -20,6 +20,10 @@ public class SurveyEntity {
         CREATED, COMPLETED, DELETED
     }
 
+    public enum SurveyVisibility {
+        PUBLIC, UNLISTED, PRIVATE
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +32,10 @@ public class SurveyEntity {
 
     @Enumerated(EnumType.STRING)
     private SurveyState state = SurveyState.CREATED;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SurveyVisibility visibility = SurveyVisibility.PRIVATE;
 
     @ManyToMany
     @JoinTable(
@@ -41,15 +49,16 @@ public class SurveyEntity {
     @Column(unique = true, nullable = false)
     private String shareToken;
 
-    @Column(nullable = false)
-    private boolean publicShareEnabled = true;
-
     @PrePersist
     public void prePersist() {
         if (shareToken == null || shareToken.isBlank()) {
             shareToken = UUID.randomUUID().toString();
         }
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
+    private UserEntity creator;
 
 
 }

@@ -7,5 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface SurveyInstanceRepository extends JpaRepository<SurveyInstanceEntity, Long> {
+
     List<SurveyInstanceEntity> findByState(SurveyInstanceState state);
+
+    List<SurveyInstanceEntity> findBySurveyIdAndState(
+            Long surveyId,
+            SurveyInstanceEntity.SurveyInstanceState state
+    );
+
 }

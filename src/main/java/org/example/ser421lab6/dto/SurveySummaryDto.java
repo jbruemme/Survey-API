@@ -11,4 +11,5 @@ public class SurveySummaryDto {
     private Long id;
     private String title;
     private String state;
+    private String visibility;
 }

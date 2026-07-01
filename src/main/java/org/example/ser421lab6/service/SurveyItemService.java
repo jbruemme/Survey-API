@@ -3,7 +3,6 @@ package org.example.ser421lab6.service;
 import lombok.RequiredArgsConstructor;
 import org.example.ser421lab6.dto.SurveyItemDto;
 import org.example.ser421lab6.dto.SurveyItemInstanceDto;
-import org.example.ser421lab6.entity.SurveyInstanceEntity;
 import org.example.ser421lab6.entity.SurveyItemEntity;
 import org.example.ser421lab6.entity.SurveyItemInstanceEntity;
 import org.example.ser421lab6.repository.SurveyInstanceRepository;
@@ -68,74 +67,6 @@ public class SurveyItemService {
 
         SurveyItemEntity savedSurveyItem = surveyItemRepository.save(surveyItemEntity);
         return toSurveyItemDto(savedSurveyItem);
-    }
-
-    /**
-     *Function to submit an answer for a survey item instance.
-     * @param surveyInstanceId The ID of the survey instance
-     * @param itemInstanceId The ID of the survey item instance
-     * @param answer The answer being submitted
-     * @return SurveyItemInstanceDto with the submitted answer
-     */
-    @Transactional
-    public SurveyItemInstanceDto submitAnswer(Long surveyInstanceId, Long itemInstanceId, String answer) {
-
-        // Retrieve and validate answer, item instance, survey instance
-        if (answer == null || answer.trim().isEmpty()) {
-            throw new IllegalArgumentException("Answer cannot be empty");
-        }
-
-        SurveyInstanceEntity surveyInstance = surveyInstanceRepository.findById(surveyInstanceId)
-                .orElseThrow(() -> new IllegalArgumentException("Survey instance with id: " + surveyInstanceId
-                        + " not found."
-                ));
-
-        SurveyItemInstanceEntity itemInstance = surveyItemInstanceRepository.findById(itemInstanceId)
-                .orElseThrow(() -> new IllegalArgumentException("Survey item instance with id: " + itemInstanceId
-                + " not found."
-                ));
-
-        // Validate the survey item instance belongs to the survey instance
-        if (!itemInstance.getSurveyInstance().getId().equals(surveyInstance.getId())) {
-            throw new IllegalArgumentException(
-                    "Survey item instance with id: " + itemInstanceId + " does not belong to survey instance with id: "
-                    + surveyInstanceId + "."
-            );
-        }
-
-        // Validate the item instance hasn't already been answered
-        if (itemInstance.getUserAnswer() != null) {
-            throw new IllegalArgumentException(
-                    "Answer already submitted for survey item with id: " + itemInstanceId
-            );
-        }
-
-        // Set user answer for item instance and set answer correctness
-        String trimmedAnswer = answer.trim();
-        itemInstance.setUserAnswer(trimmedAnswer);
-
-        String correctAnswer = itemInstance.getSurveyItem().getCorrectAnswer();
-        Boolean isAnswerCorrect = null;
-
-        if (correctAnswer != null && !correctAnswer.isBlank()) {
-            isAnswerCorrect = trimmedAnswer.equalsIgnoreCase(correctAnswer);
-        }
-        itemInstance.setCorrect(isAnswerCorrect);
-
-        // Save and return the updated survey instance item
-        SurveyItemInstanceEntity savedSurveyInstanceItem = surveyItemInstanceRepository.save(itemInstance);
-
-        // Check if all item instances are answered for the survey instance and update survey instance state accordingly
-        boolean allItemsAnswered = surveyInstance.getItemInstances().stream().allMatch(i -> i.getUserAnswer() != null);
-        if (allItemsAnswered) {
-            surveyInstance.setState(SurveyInstanceEntity.SurveyInstanceState.COMPLETED);
-        } else {
-            surveyInstance.setState(SurveyInstanceEntity.SurveyInstanceState.IN_PROGRESS);
-        }
-        surveyInstanceRepository.save(surveyInstance);
-
-        return toSurveyInstanceItemDto(savedSurveyInstanceItem);
-
     }
 
     /*

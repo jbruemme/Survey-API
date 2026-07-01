@@ -1,6 +1,8 @@
 import styles from "./Dashboard.module.css";
 import { useEffect, useState } from "react";
 import { surveysApi } from "../api/surveys";
+import { Share2, Eye, Trash2, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DEV = import.meta.env.DEV;
 
@@ -10,6 +12,9 @@ export default function Dashboard() {
     const [openShareId, setOpenShareId] = useState(null);
     const [error, setError] = useState("");
     const [status, setStatus] = useState("");
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [openVisibilityId, setOpenVisibilityId] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         (async () => {
@@ -55,6 +60,55 @@ export default function Dashboard() {
         }
     }
 
+    async function changeVisibility(id, visibility) {
+        try {
+            const updatedSurvey =
+                await surveysApi.updateVisibility(id, visibility);
+
+            setSurveys(prev =>
+                prev.map(survey =>
+                    survey.id === id
+                        ? {
+                            ...survey,
+                            visibility: updatedSurvey.visibility
+                        }
+                        : survey
+                )
+            );
+
+            setOpenVisibilityId(null);
+            setOpenMenuId(null);
+
+            setStatus(
+                `Survey visibility updated to ${visibility}.`
+            );
+        } catch (e) {
+            setError(e.message);
+        }
+    }
+
+    async function deleteSurvey(id) {
+        const confirmed = window.confirm("Are you sure you want to delete this survey?");
+
+        if (!confirmed) return;
+
+        try {
+            await surveysApi.delete(id);
+
+            setSurveys(prev =>
+                prev.filter(survey => survey.id !== id)
+            );
+
+            setOpenMenuId(null);
+            setOpenVisibilityId(null);
+            setOpenShareId(null);
+
+            setStatus("Survey deleted.");
+        } catch (e) {
+            setError(`Failed to delete survey: ${e.message}`);
+        }
+    }
+
     return (
         <div className={`${styles.page} fadeIn`}>
             <div className={styles.shell}>
@@ -77,26 +131,124 @@ export default function Dashboard() {
                         const share = shareDataById[survey.id];
                         const isOpen = openShareId === survey.id;
                         return (
-                            <section key={survey.id} className={styles.card}>
+                            <section
+                                key={survey.id}
+                                className={styles.card}
+                                onClick={() => navigate(`/surveys/${survey.id}/results`)}
+                            >
                                 <div className={styles.cardHeader}>
                                     <div>
                                         <h3 className={styles.title}>{survey.title}</h3>
                                         <div className={styles.meta}>
                                             #{survey.id} · {survey.state}
                                         </div>
+                                        <div
+                                            className={`${styles.badge} ${
+                                                styles[survey.visibility.toLowerCase()]
+                                            }`}
+                                        >
+                                            {survey.visibility}
+                                        </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => toggleShare(survey.id)}
-                                        className={`${styles.btn} ${styles.primary}`}
-                                        type="button"
+                                    <div
+                                        className={styles.menuWrap}
+                                        onClick={(e) => e.stopPropagation()}
                                     >
-                                        {isOpen ? "Close Share" : "Share"}
-                                    </button>
+                                        <button
+                                            className={styles.menuButton}
+                                            type="button"
+                                            onClick={() => {
+                                                const isClosing = openMenuId === survey.id;
+                                                setOpenMenuId(isClosing ? null : survey.id)
+
+                                                if (isClosing) {
+                                                    setOpenVisibilityId(null);
+                                                    setOpenShareId(null);
+                                                }
+                                            }}
+                                        >
+                                            <MoreHorizontal size={22} strokeWidth={2.6} />
+                                        </button>
+
+                                        {openMenuId === survey.id && (
+                                            <div className={styles.menu}>
+                                                <button
+                                                    type="button"
+                                                    className={styles.menuItem}
+                                                    onClick={() => {
+                                                        setOpenMenuId(null);
+                                                        toggleShare(survey.id);
+                                                    }}
+                                                    disabled={survey.visibility === "PRIVATE"}
+                                                    title="Share"
+                                                >
+                                                    <Share2 size={18}/>
+                                                </button>
+
+                                                <div className={styles.visibilityWrap}>
+                                                    <button
+                                                        type="button"
+                                                        className={styles.menuItem}
+                                                        onClick={() =>
+                                                            setOpenVisibilityId(
+                                                                openVisibilityId === survey.id ? null : survey.id
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye size={18}/>
+                                                    </button>
+
+                                                    {openVisibilityId === survey.id && (
+                                                        <div className={styles.visibilityMenu}>
+                                                            <button
+                                                                className={styles.visibilityOption}
+                                                                onClick={() =>
+                                                                    changeVisibility(survey.id, "PRIVATE")
+                                                                }
+                                                            >
+                                                                Private
+                                                            </button>
+
+                                                            <button
+                                                                className={styles.visibilityOption}
+                                                                onClick={() =>
+                                                                    changeVisibility(survey.id, "UNLISTED")
+                                                                }
+                                                            >
+                                                                Unlisted
+                                                            </button>
+
+                                                            <button
+                                                                className={styles.visibilityOption}
+                                                                onClick={() =>
+                                                                    changeVisibility(survey.id, "PUBLIC")
+                                                                }
+                                                            >
+                                                                Public
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    className={`${styles.menuItem} ${styles.danger}`}
+                                                    onClick={() => deleteSurvey(survey.id)}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18}/>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {isOpen && share && (
-                                    <div className={styles.sharePanel}>
+                                    <div
+                                        className={styles.sharePanel}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         {DEV && (
                                             <pre>{JSON.stringify(share, null, 2)}</pre>
                                         )}

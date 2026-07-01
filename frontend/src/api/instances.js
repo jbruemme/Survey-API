@@ -9,9 +9,12 @@ export const instancesApi = {
         method: "POST",
         body: JSON.stringify(payload),
     }),
+
     get: (id) => requestJson(`/api/survey-instances/${id}`),
+
     answer: (payload) => requestJson("/api/survey-instances/answer", {
         method: "POST",
         body: JSON.stringify(payload),
     }),
+
 };

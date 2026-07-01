@@ -1,6 +1,8 @@
 package org.example.ser421lab6.controller;
 
+import jakarta.validation.Valid;
 import org.example.ser421lab6.dto.ErrorResponse;
+import org.example.ser421lab6.dto.SubmitAnswerDto;
 import org.example.ser421lab6.dto.SurveyInstanceCreateDto;
 import org.example.ser421lab6.dto.SurveyInstanceDto;
 import org.example.ser421lab6.service.SurveyInstanceService;
@@ -196,13 +198,17 @@ public class SurveyInstanceController {
     @PostMapping("/survey-instances")
     public ResponseEntity<?> createSurveyInstance(@RequestBody SurveyInstanceCreateDto request) {
         try {
-            SurveyInstanceDto surveyInstance = surveyInstanceService.createSurveyInstance(
-                    request.getUser(), request.getSurveyId()
-            );
+            SurveyInstanceDto surveyInstance = surveyInstanceService.createSurveyInstance(request.getSurveyId());
             return ResponseEntity.status(201).body(surveyInstance);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @PostMapping("/survey-instances/answer")
+    public ResponseEntity<SurveyInstanceDto> answerSurveyItem(@Valid @RequestBody SubmitAnswerDto request) {
+        SurveyInstanceDto updatedSurveyInstance = surveyInstanceService.answerSurveyItem(request);
+        return ResponseEntity.ok(updatedSurveyInstance);
     }
 
 
