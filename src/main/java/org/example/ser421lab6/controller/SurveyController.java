@@ -269,6 +269,11 @@ public class SurveyController {
         return ResponseEntity.ok(survey);
     }
 
+    @GetMapping("/public/surveys/id/{id}")
+    public ResponseEntity<?> getPublicSurveyById(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.getPublicSurveyById(id));
+    }
+
     /*
      * @api {get} /api/surveys/:id/share Get survey share links
      * @apiName GetSurveyShareLinks

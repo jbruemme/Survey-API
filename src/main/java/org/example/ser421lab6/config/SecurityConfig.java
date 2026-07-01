@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/survey-instances/**").permitAll()
                         .requestMatchers("/share/**").permitAll()
                         .requestMatchers("/robots.txt").permitAll()
                         .anyRequest().authenticated()

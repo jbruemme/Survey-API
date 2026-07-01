@@ -158,9 +158,15 @@ export default function Dashboard() {
                                         <button
                                             className={styles.menuButton}
                                             type="button"
-                                            onClick={() =>
-                                                setOpenMenuId(openMenuId === survey.id ? null : survey.id)
-                                            }
+                                            onClick={() => {
+                                                const isClosing = openMenuId === survey.id;
+                                                setOpenMenuId(isClosing ? null : survey.id)
+
+                                                if (isClosing) {
+                                                    setOpenVisibilityId(null);
+                                                    setOpenShareId(null);
+                                                }
+                                            }}
                                         >
                                             <MoreHorizontal size={22} strokeWidth={2.6} />
                                         </button>
@@ -239,7 +245,10 @@ export default function Dashboard() {
                                 </div>
 
                                 {isOpen && share && (
-                                    <div className={styles.sharePanel}>
+                                    <div
+                                        className={styles.sharePanel}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         {DEV && (
                                             <pre>{JSON.stringify(share, null, 2)}</pre>
                                         )}

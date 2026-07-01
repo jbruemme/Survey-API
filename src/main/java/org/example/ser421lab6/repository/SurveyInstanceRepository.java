@@ -2,7 +2,6 @@ package org.example.ser421lab6.repository;
 
 import org.example.ser421lab6.entity.SurveyInstanceEntity;
 import org.example.ser421lab6.entity.SurveyInstanceEntity.SurveyInstanceState;
-import org.example.ser421lab6.entity.SurveyItemInstanceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

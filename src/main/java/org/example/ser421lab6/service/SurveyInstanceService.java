@@ -11,6 +11,9 @@ import org.example.ser421lab6.repository.SurveyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.example.ser421lab6.exception.SurveyNotFoundException;
+import org.example.ser421lab6.exception.InvalidSurveyVisibilityException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,34 +69,34 @@ public class SurveyInstanceService {
     public SurveyInstanceDto getSurveyInstanceById(Long id) {
 
         // Survey instance by corresponding id
-        SurveyInstanceEntity surveyInstance = surveyInstanceRepository.findById(id).orElse(null);
+        SurveyInstanceEntity surveyInstance = surveyInstanceRepository.findById(id)
+                .orElseThrow(() -> new SurveyNotFoundException("Survey instance with ID " + id + " does not exist;"));
 
-        if (surveyInstance == null) {
-            return null;
-        }
         return toSurveyInstanceDto(surveyInstance);
     }
 
     /**
      * Function to initiate a survey instance
-     * @param userName The user taking the survey
      * @param surveyId The ID of the survey being used for the instance
      * @return A new survey instance
      */
     @Transactional
-    public SurveyInstanceDto createSurveyInstance(String userName, Long surveyId) {
-
-        // Validate user and survey id
-        if (userName == null || userName.trim().isEmpty()) {
-            throw new IllegalArgumentException("User name cannot be empty.");
-        }
+    public SurveyInstanceDto createSurveyInstance(Long surveyId) {
 
         SurveyEntity survey = surveyRepository.findById(surveyId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid survey id: " + surveyId));
+                .orElseThrow(() -> new SurveyNotFoundException("Survey with id: " + surveyId + " does not exist;"));
+
+        if ( survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new InvalidSurveyVisibilityException("Survey not found.");
+        }
+
+        if (survey.getVisibility() == SurveyEntity.SurveyVisibility.PRIVATE) {
+            throw new InvalidSurveyVisibilityException("This survye is private.");
+        }
 
         // Create survey instance
         SurveyInstanceEntity surveyInstance = new SurveyInstanceEntity();
-        surveyInstance.setUser(userName);
+        surveyInstance.setUser(null);
         surveyInstance.setSurvey(survey);
         surveyInstance.setState(SurveyInstanceState.CREATED);
 
@@ -104,7 +107,7 @@ public class SurveyInstanceService {
             instanceItem.setSurveyInstance(surveyInstance);
             instanceItem.setSurveyItem(item);
             instanceItem.setUserAnswer(null);
-            instanceItem.setCorrect(false);
+            instanceItem.setCorrect(null);
             itemInstances.add(instanceItem);
         }
 
@@ -114,6 +117,61 @@ public class SurveyInstanceService {
         // Save and return the survey instance
         SurveyInstanceEntity savedSurveyInstance = surveyInstanceRepository.save(surveyInstance);
         return toSurveyInstanceDto(savedSurveyInstance);
+    }
+
+    /**
+     * Function to answer a survey item for a specific survey instance
+     * @param request User answer request
+     * @return Updated survey instance
+     */
+    @Transactional
+    public SurveyInstanceDto answerSurveyItem(SubmitAnswerDto request) {
+        SurveyInstanceEntity surveyInstance = surveyInstanceRepository
+                .findById(request.getSurveyInstanceId())
+                .orElseThrow(() ->
+                        new SurveyNotFoundException(
+                                "Survey instance with ID " + request.getSurveyInstanceId() + " does not exist."
+                        )
+                );
+
+        if (surveyInstance.getState() == SurveyInstanceEntity.SurveyInstanceState.COMPLETED) {
+            throw new IllegalArgumentException("This survey has already been completed.");
+        }
+
+        SurveyItemInstanceEntity itemInstance = surveyInstance.getItemInstances()
+                .stream()
+                .filter(ii -> ii.getId().equals(request.getSurveyItemInstanceId()))
+                .findFirst()
+                .orElseThrow(() -> new SurveyNotFoundException("Survey item instance not found."));
+
+        String answer = request.getAnswer();
+
+        if (answer == null || answer.isBlank()) {
+            throw new IllegalArgumentException("Answer is required.");
+        }
+
+        itemInstance.setUserAnswer(answer);
+
+        String correctAnswer = itemInstance.getSurveyItem().getCorrectAnswer();
+
+        if (correctAnswer == null || correctAnswer.isBlank()) {
+            itemInstance.setCorrect(null);
+        } else {
+            itemInstance.setCorrect(answer.equals(correctAnswer));
+        }
+
+        boolean allAnswered = surveyInstance.getItemInstances()
+                .stream()
+                .allMatch(ii -> ii.getUserAnswer() != null && !ii.getUserAnswer().isBlank());
+
+        if (allAnswered) {
+            surveyInstance.setState(SurveyInstanceState.COMPLETED);
+        } else {
+            surveyInstance.setState(SurveyInstanceState.IN_PROGRESS);
+        }
+
+        SurveyInstanceEntity saved = surveyInstanceRepository.save(surveyInstance);
+        return toSurveyInstanceDto(saved);
     }
 
     /*

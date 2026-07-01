@@ -257,6 +257,27 @@ public class SurveyService {
     }
 
     /**
+     * Function to retrieve a public survey by its ID
+     * @return SurveyDto of the requested survey
+     */
+    @Transactional(readOnly = true)
+    public SurveyDto getPublicSurveyById(Long id) {
+
+        SurveyEntity survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new SurveyNotFoundException("Survey with ID: " + id + " does not exist."));
+
+        if (survey.getState() == SurveyEntity.SurveyState.DELETED) {
+            throw new SurveyNotFoundException("Survey not found.");
+        }
+
+        if (survey.getVisibility() != SurveyEntity.SurveyVisibility.PUBLIC) {
+            throw new InvalidSurveyVisibilityException("Public sharing is disabled for this survey.");
+        }
+
+        return toSurveyDto(survey);
+    }
+
+    /**
      * Function to retrieve survey results of a requested survey
      * @param surveyId The ID of the survey requesting results
      * @return SurveyResultsDto

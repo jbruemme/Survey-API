@@ -61,45 +61,4 @@ public class surveyItemController {
         }
     }
 
-    /*
-     * @api {post} /api/survey-instances/answer Submit answer for a survey item instance
-     * @apiName SubmitAnswer
-     * @apiGroup SurveyInstance
-     *
-     * @apiBody {Number} surveyInstanceId ID of the survey instance.
-     * @apiBody {Number} surveyItemInstanceId ID of the survey item instance.
-     * @apiBody {String} answer User's selected answer.
-     *
-     * @apiSuccess {Number} id Survey item instance ID.
-     * @apiSuccess {String} question Question text.
-     * @apiSuccess {String} userAnswer Submitted answer.
-     * @apiSuccess {Boolean} correct Whether the answer was correct.
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *   HTTP/1.1 200 OK
-     *   {
-     *     "id": 4,
-     *     "question": "Who won the MVP in the 2005/2006 NBA season?",
-     *     "selectedAnswer": "Steve Nash",
-     *     "correct": true
-     * }
-     *
-     * @apiError 400 Bad Request Invalid IDs or answer already submitted.
-     */
-    @PostMapping("/survey-instances/answer")
-    public ResponseEntity<?> submitAnswer(@RequestBody SubmitAnswerDto request) {
-        try {
-            SurveyItemInstanceDto result = surveyItemService.submitAnswer(
-                    request.getSurveyInstanceId(),
-                    request.getSurveyItemInstanceId(),
-                    request.getAnswer()
-            );
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body(new ErrorResponse(e.getMessage()));
-        }
-    }
-
-
-
 }
