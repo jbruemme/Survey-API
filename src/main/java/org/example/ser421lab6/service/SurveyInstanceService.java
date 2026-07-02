@@ -15,6 +15,7 @@ import org.example.ser421lab6.exception.SurveyNotFoundException;
 import org.example.ser421lab6.exception.InvalidSurveyVisibilityException;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -224,6 +225,7 @@ public class SurveyInstanceService {
 
         // Mapping survey instance items (User's answers)
         List<SurveyItemInstanceDto> itemInstanceDtos = surveyInstance.getItemInstances().stream()
+                .sorted(Comparator.comparing(SurveyItemInstanceEntity::getId))
                 .map(ii -> new SurveyItemInstanceDto(
                         ii.getId(),
                         ii.getSurveyItem().getId(),

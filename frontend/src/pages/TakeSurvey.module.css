@@ -191,6 +191,23 @@
     background: var(--panel2);
 }
 
+.completeMessage {
+    max-width: 700px;
+    margin: 1rem auto 2rem;
+    text-align: center;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #94a3b8;
+}
+
+.completeTitle {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #e5e7eb;
+}
+
 .progressTrack {
     height: 8px;
     background: var(--panel2);
@@ -205,6 +222,8 @@
     border-radius: 999px;
     transition: width 300ms ease;
 }
+
+
 
 @media (max-width: 900px) {
     .grid {
@@ -239,4 +258,6 @@
         border-radius: 12px;
         padding: 12px;
     }
+
+
 }
