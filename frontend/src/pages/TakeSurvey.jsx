@@ -75,6 +75,7 @@ export default function TakeSurvey() {
     const isLastQuestion = currentIdx === totalQuestions - 1;
     const isComplete = instance?.state === "COMPLETED";
     const canStart = Number(surveyId) > 0 && !busy;
+    const progressPercent = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
 
     /**
      * Async function to start a new survey instance, waits for the survey id to be fetched, returns a promise that resolves
@@ -147,18 +148,6 @@ export default function TakeSurvey() {
     }
 
     /**
-     * Async function to refresh current survey instance from te API. Fetches the latest instance data using
-     * /api/survey-instances/${id}, updates the component state, and returns the loaded instance.
-     * @returns {Promise<*>} Promise resolve to updated survey instance or undefined if the instance ID is not found.
-     */
-    async function refreshInstance() {
-        if (!instance?.id) return;
-        const loaded = await instancesApi.get(instance.id);
-        setInstance(loaded);
-        return loaded;
-    }
-
-    /**
      * Async function to go to next question
      * @returns {Promise<void>}
      */
@@ -168,9 +157,10 @@ export default function TakeSurvey() {
 
         try {
             setBusy(true);
+            const nextIdx = Math.min(currentIdx + 1, itemInstances.length - 1);
             const updatedInstance = await saveCurrentAnswer();
             setInstance(updatedInstance);
-            setCurrentIdx((idx) => Math.min(idx + 1, totalQuestions - 1));
+            setCurrentIdx(nextIdx);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -288,8 +278,8 @@ export default function TakeSurvey() {
 
                 {instance && isComplete && (
                     <section className={styles.card}>
-                        <h3 className={styles.sectionTitle}>Survey Complete</h3>
-                        <p className={styles.meta}>
+                        <h3 className={styles.completeTitle}>Survey Complete</h3>
+                        <p className={styles.completeMessage}>
                             {isLoggedIn
                                 ? "Thanks for completing this survey! Your response has been recorded successfully. " +
                                   "Return to your dashboard to continue creating and managing your surveys."
@@ -331,10 +321,7 @@ export default function TakeSurvey() {
                             <div
                                 className={styles.progressFill}
                                 style={{
-                                    width:
-                                        totalQuestions > 0
-                                            ? `${((currentIdx + 1) / totalQuestions) * 100}%`
-                                            : "0%",
+                                    width:`${progressPercent}%`,
                                 }}
                             />
                         </div>
